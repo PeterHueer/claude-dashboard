@@ -1,93 +1,154 @@
 # Claude AI Power Tools Dashboard
 
-Local web dashboard for managing Claude Code skills, MCP servers, plugins, agents, and custom commands.
+Local web dashboard for managing Claude Code skills, MCP servers, plugins, and agents.
 
 <img src="example.png" alt="Claude AI Power Tools Dashboard" width="800">
 
-## Features
+## Table of Contents
 
-- **Overview** — at-a-glance stat cards for all sections, click to navigate
-- **Skills** — browse installed skills grouped by plugin; copy the invoke string in one click
-- **Skill discovery** — search [skills.sh](https://skills.sh) and browse All Time / Trending / Hot; install directly from the dashboard
-- **MCP Servers** — view all active MCP server configurations with their source (global or plugin)
-- **Plugins** — inspect installed plugins with type badges (skill / mcp)
-- **Agents** — explore available agents across all installed plugins
-- **Custom Commands** — browse all `/slash-commands` grouped by prefix, with descriptions and copy-invoke buttons
-- **Terminal panel** — live CLI output streamed to the browser for every action
-- **`/dashboard` command** — type `/dashboard` in Claude Code to start the server and open the browser instantly
+- [Plugin Installation](#plugin-installation)
+- [Manual Installation](#manual-installation)
+- [Usage](#usage)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Scripts](#scripts)
+- [Security](#security)
 
-## Prerequisites
+---
 
-- Node.js 18+
-- macOS / Linux — bash available natively
-- Windows — requires [Git Bash](https://git-scm.com/downloads) or WSL (does **not** work in cmd.exe or PowerShell)
+## Plugin Installation
 
-## Install
-
-### macOS / Linux
-
-```bash
-bash ~/.claude/dashboard/install.sh
-```
-
-### Windows (Git Bash or WSL)
-
-```bash
-bash ~/.claude/dashboard/install.sh
-```
-
-> Open Git Bash, then run the command above. Make sure Node.js is in your PATH.
-
-The install script:
-1. Runs `npm install` to fetch dependencies
-2. Makes all scripts executable
-3. Use `/dashboard` in Claude Code to start the server and open the browser
-
-## Manual controls
-
-```bash
-# Start (no-op if already running)
-bash ~/.claude/dashboard/scripts/start.sh
-
-# Stop
-bash ~/.claude/dashboard/scripts/stop.sh
-
-# Stop server and remove any dashboard hooks from ~/.claude/settings.json
-bash ~/.claude/dashboard/scripts/remove.sh
-```
-
-Open: http://127.0.0.1:7777
-
-## Claude Code command
-
-Use `/dashboard:open` inside Claude Code to start the server and open the browser automatically.
-
-## Plugin installation
-
-This repo is a valid Claude Code plugin. Once published to GitHub, install it with:
+This repo is a valid Claude Code plugin. Install it directly from GitHub:
 
 ```bash
 claude plugin install github:your-username/claude-dashboard
 ```
 
-After install, `/dashboard:open` is available in every Claude Code session.
+After install, `/dashboard:open` is available in every Claude Code session and opens the browser automatically.
 
-## Sections
+---
 
-| Section | Description |
-|---|---|
-| Overview | Stat counts for skills, MCP servers, plugins, agents, and commands |
-| Skills | Installed skills grouped by plugin, with discover and copy-invoke buttons |
-| MCP Servers | Active MCP server cards showing package and source |
-| Plugins | Installed plugins with type badges |
-| Agents | Available agents across all plugins |
-| Commands | All custom slash commands with descriptions and copy-invoke buttons |
+## Manual Installation
 
-## Terminal Panel
+### Prerequisites
 
-All CLI command output streams to the terminal panel at the bottom. Click "clear" to reset.
+- Node.js 18+
+- macOS / Linux — bash available natively
+- Windows — requires [Git Bash](https://git-scm.com/downloads) or WSL (does **not** work in `cmd.exe` or PowerShell)
+
+### Setup
+
+Clone the repo into `~/.claude/dashboard` and run the install script:
+
+```bash
+git clone https://github.com/your-username/claude-dashboard ~/.claude/dashboard
+bash ~/.claude/dashboard/install.sh
+```
+
+The install script runs `npm install` and makes all scripts executable.
+
+---
+
+## Usage
+
+### Via Claude Code
+
+Type `/dashboard:open` in any Claude Code session to start the server and open the browser.
+
+### Via terminal
+
+```bash
+# Start (no-op if already running, opens browser)
+bash ~/.claude/dashboard/scripts/start.sh
+
+# Stop
+bash ~/.claude/dashboard/scripts/stop.sh
+```
+
+Open manually: http://127.0.0.1:7777
+
+---
+
+## Features
+
+- **Overview** — stat cards for all sections, click to navigate
+- **Skills** — browse personal and plugin skills across three tabs: My Skills, Plugins, Discover
+- **Skill discovery** — search [skills.sh](https://skills.sh) and browse All Time / Trending / Hot; install directly from the dashboard
+- **MCP Servers** — view all active MCP server configurations with their source (global or plugin)
+- **Plugins** — inspect installed plugins with type badges (skill / mcp)
+- **Agents** — explore available agents across all installed plugins
+- **Terminal panel** — live CLI output streamed to the browser for every action
+
+---
+
+## Architecture
+
+### Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Server | Node.js + Express |
+| Frontend | Vanilla JS, DaisyUI, Tailwind CSS |
+| Data | Filesystem scan (no database) |
+
+### Data sources
+
+| Section | Source path |
+|---------|------------|
+| Skills (personal) | `~/.claude/skills/` |
+| Skills (plugins) | `~/.claude/plugins/cache/{marketplace}/{plugin}/{version}/skills/` |
+| MCP Servers | `~/.mcp.json`, plugin `.mcp.json` files |
+| Plugins | `~/.claude/plugins/marketplaces/` |
+| Agents | `~/.claude/plugins/marketplaces/*/plugins/*/agents/` |
+
+### File structure
+
+```
+~/.claude/dashboard/
+├── server.js              # Express entry point
+├── lib/
+│   ├── constants.js       # PORT, CLAUDE_DIR, TRASH_DIR
+│   └── helpers.js         # Shared utilities
+├── routes/
+│   ├── discover.js        # GET /api/skills, /api/mcp, /api/plugins, /api/agents
+│   ├── mutations.js       # DELETE /api/skills
+│   ├── exec.js            # POST /api/exec
+│   └── trash.js           # Trash management
+├── public/
+│   ├── index.html
+│   └── js/
+│       ├── core.js        # Navigation, API helpers, terminal
+│       ├── overview.js
+│       ├── skills.js
+│       ├── mcp.js
+│       ├── plugins.js
+│       ├── agents.js
+│       └── trash.js
+├── scripts/
+│   ├── start.sh           # Start server (cross-platform)
+│   ├── stop.sh            # Stop server (cross-platform)
+│   └── remove.sh          # Remove hooks + stop server
+├── commands/
+│   └── open.md            # /dashboard:open Claude Code command
+└── .claude-plugin/
+    └── plugin.json        # Plugin manifest
+```
+
+---
+
+## Scripts
+
+| Script | Description |
+|--------|-------------|
+| `scripts/start.sh` | Starts the server on port 7777 if not already running, then opens the browser. Cross-platform (macOS / Linux / Windows Git Bash). |
+| `scripts/stop.sh` | Kills the process on port 7777. Cross-platform. |
+| `scripts/remove.sh` | Removes any dashboard hooks from `~/.claude/settings.json` and stops the server. |
+| `install.sh` | Runs `npm install` and makes scripts executable. |
+
+---
 
 ## Security
 
-- Server binds to 127.0.0.1 only (not accessible on network)
+- Server binds to `127.0.0.1` only — not accessible on the network
 - `/api/exec` only allows: `claude plugin install/remove`
+- All user input is HTML-escaped before rendering
