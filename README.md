@@ -150,5 +150,7 @@ Open manually: http://127.0.0.1:7777
 ## Security
 
 - Server binds to `127.0.0.1` only — not accessible on the network
-- `/api/exec` only allows: `claude plugin install/remove`
+- `/api/exec` only allows two command patterns:
+  - `claude plugin install/remove <package>`
+  - `npx skills add <source>@<skillId>`
 - All user input is HTML-escaped before rendering
