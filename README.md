@@ -21,7 +21,7 @@ Local web dashboard for managing Claude Code skills, MCP servers, plugins, and a
 This repo is a valid Claude Code plugin. Install it directly from GitHub:
 
 ```bash
-claude plugin install github:PeterHueer/claude-dashboard
+  claude plugin install dashboard@claude-dashboard
 ```
 
 After install, `/dashboard:open` is available in every Claude Code session and opens the browser automatically.
