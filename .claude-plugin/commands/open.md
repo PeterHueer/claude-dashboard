@@ -1,10 +1,12 @@
 ---
 description: "Open the Claude Dashboard in the browser"
+allowed-tools: Bash
 ---
 
-Start the Claude Dashboard and open it in the browser.
+Run the following command:
 
-Run the following bash commands in sequence:
-1. `bash ~/.claude/dashboard/scripts/start.sh`
+```bash
+bash ~/.claude/dashboard/scripts/start.sh
+```
 
-Then tell the user the dashboard is available at http://127.0.0.1:7777
+Then tell the user: "Claude Dashboard opened at http://127.0.0.1:7777"
