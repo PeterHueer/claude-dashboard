@@ -350,15 +350,57 @@ async function removePlugin(name) {
   loaders.plugins();
 }
 
+// ── Agents section ────────────────────────────────────────────────────────────
+loaders.agents = async function loadAgents() {
+  const container = document.getElementById('section-agents');
+  container.innerHTML = '<div class="text-base-content opacity-50 text-sm">Loading agents...</div>';
+  const agents = await api('/api/agents');
+
+  if (agents.length === 0) {
+    container.innerHTML = '<h2 class="text-lg font-bold mb-4 text-primary">Agents</h2><p class="text-sm opacity-50">No agents installed.</p>';
+    return;
+  }
+
+  const grouped = agents.reduce((acc, a) => {
+    const key = a.plugin || 'other';
+    acc[key] = acc[key] || [];
+    acc[key].push(a);
+    return acc;
+  }, {});
+
+  container.innerHTML = `
+    <h2 class="text-lg font-bold mb-4 text-primary">Agents</h2>
+    ${Object.entries(grouped).map(([plugin, items]) => `
+      <div class="mb-6">
+        <h3 class="text-sm font-semibold mb-3 opacity-60">${escHtml(plugin)}</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          ${items.map(agent => `
+            <div class="card bg-base-100 shadow-sm">
+              <div class="card-body p-4">
+                <div class="flex items-center justify-between gap-2">
+                  <h4 class="card-title text-sm">${escHtml(agent.name)}</h4>
+                  <span class="badge badge-secondary badge-sm flex-shrink-0">${escHtml(agent.plugin || 'other')}</span>
+                </div>
+                <p class="text-xs opacity-70 mt-1 flex-1">${escHtml(agent.description || 'No description')}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('')}
+  `;
+};
+
 // ── Overview section ──────────────────────────────────────────────────────────
 loaders.overview = async function loadOverview() {
   const container = document.getElementById('section-overview');
   container.innerHTML = '<div class="text-base-content opacity-50 text-sm">Loading...</div>';
 
-  const [skills, mcp, plugins] = await Promise.all([
+  const [skills, mcp, plugins, agents] = await Promise.all([
     api('/api/skills'),
     api('/api/mcp'),
     api('/api/plugins'),
+    api('/api/agents'),
   ]);
 
   container.innerHTML = `
@@ -380,6 +422,12 @@ loaders.overview = async function loadOverview() {
            onclick="showSection('plugins')">
         <div class="stat-title">Plugins</div>
         <div class="stat-value text-secondary">${plugins.length}</div>
+        <div class="stat-desc">click to explore</div>
+      </div>
+      <div class="stat bg-base-100 rounded-box shadow-sm cursor-pointer hover:bg-base-200"
+           onclick="showSection('agents')">
+        <div class="stat-title">Agents</div>
+        <div class="stat-value text-accent">${agents.length}</div>
         <div class="stat-desc">click to explore</div>
       </div>
     </div>

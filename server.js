@@ -152,6 +152,52 @@ app.get('/api/skills', (req, res) => {
   res.json(discoverSkills());
 });
 
+// GET /api/agents
+
+function discoverAgents() {
+  const agents = [];
+  const pluginsDir = path.join(CLAUDE_DIR, 'plugins', 'marketplaces');
+  if (!fs.existsSync(pluginsDir)) return agents;
+
+  function scanAgentsDir(dir, pluginName) {
+    if (!fs.existsSync(dir)) return;
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isFile() || !entry.name.endsWith('.md')) continue;
+      const fullPath = path.join(dir, entry.name);
+      const content = fs.readFileSync(fullPath, 'utf8');
+      const nameMatch = content.match(/^name:\s*(.+)$/m);
+      // description may be multi-line (block scalar) — grab first non-empty line after "description:"
+      const descMatch = content.match(/^description:\s*(.+)$/m)
+        || content.match(/^description:\s*\|\s*\n\s*(.+)$/m);
+      const agentName = nameMatch?.[1]?.trim() || path.basename(entry.name, '.md');
+      const description = descMatch?.[1]?.trim().replace(/<[^>]+>/g, '').substring(0, 150) || '';
+      agents.push({ name: agentName, description, plugin: pluginName });
+    }
+  }
+
+  const marketplaces = fs.readdirSync(pluginsDir);
+  for (const marketplace of marketplaces) {
+    const pluginsSubDir = path.join(pluginsDir, marketplace, 'plugins');
+    if (!fs.existsSync(pluginsSubDir)) continue;
+    for (const plugin of fs.readdirSync(pluginsSubDir)) {
+      scanAgentsDir(path.join(pluginsSubDir, plugin, 'agents'), plugin);
+    }
+    // also check external_plugins (some may have agents)
+    const extDir = path.join(pluginsDir, marketplace, 'external_plugins');
+    if (!fs.existsSync(extDir)) continue;
+    for (const plugin of fs.readdirSync(extDir)) {
+      scanAgentsDir(path.join(extDir, plugin, 'agents'), plugin);
+    }
+  }
+
+  return agents;
+}
+
+app.get('/api/agents', (req, res) => {
+  res.json(discoverAgents());
+});
+
 // GET /api/skills/search — proxy to skills.sh API
 app.get('/api/skills/search', async (req, res) => {
   const q = req.query.q;
