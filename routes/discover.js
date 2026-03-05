@@ -60,37 +60,75 @@ function discoverPlugins() {
   return plugins;
 }
 
+function latestVersion(dir) {
+  if (!fs.existsSync(dir)) return null;
+  const versions = fs.readdirSync(dir).filter(v => fs.statSync(path.join(dir, v)).isDirectory());
+  if (!versions.length) return null;
+  return versions.sort((a, b) => b.localeCompare(a, undefined, { numeric: true })).at(0);
+}
+
+function readSkillFile(fullPath, pluginName, source) {
+  const content = fs.readFileSync(fullPath, 'utf8');
+  const nameMatch = content.match(/^name:\s*["']?(.+?)["']?$/m);
+  const descMatch = content.match(/^description:\s*["']?(.+?)["']?$/m);
+  const skillName = nameMatch?.[1]?.trim() || path.basename(path.dirname(fullPath));
+  const description = descMatch?.[1]?.trim().replace(/\\"/g, '"') || '';
+  return { name: skillName, description, plugin: pluginName, file: fullPath, source };
+}
+
 function discoverSkills() {
   const skills = [];
-  const pluginsDir = path.join(CLAUDE_DIR, 'plugins', 'marketplaces');
-  if (!fs.existsSync(pluginsDir)) return skills;
+  const seen = new Set();
 
-  function scanSkillsDir(dir, pluginName) {
-    if (!fs.existsSync(dir)) return;
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const fullPath = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        scanSkillsDir(fullPath, pluginName);
-      } else if (entry.name.endsWith('.md')) {
-        const content = fs.readFileSync(fullPath, 'utf8');
-        const nameMatch = content.match(/^name:\s*(.+)$/m);
-        const descMatch = content.match(/^description:\s*(.+)$/m);
-        const skillName = nameMatch?.[1]?.trim() || path.basename(entry.name, '.md');
-        const description = descMatch?.[1]?.trim() || '';
-        skills.push({ name: skillName, description, plugin: pluginName, file: fullPath });
+  function add(skill) {
+    if (seen.has(skill.name)) return;
+    seen.add(skill.name);
+    skills.push(skill);
+  }
+
+  // 1. User skills from ~/.claude/skills/
+  const userSkillsDir = path.join(CLAUDE_DIR, 'skills');
+  if (fs.existsSync(userSkillsDir)) {
+    for (const entry of fs.readdirSync(userSkillsDir)) {
+      const entryPath = path.join(userSkillsDir, entry);
+      try {
+        const stat = fs.statSync(entryPath); // follows symlinks
+        if (!stat.isDirectory()) continue;
+        const skillFile = path.join(entryPath, 'SKILL.md');
+        if (fs.existsSync(skillFile)) {
+          add(readSkillFile(skillFile, 'user', 'user'));
+        }
+      } catch { continue; }
+    }
+  }
+
+  // 2. Plugin skills from cache
+  function scanPluginCache(pluginDir, pluginName) {
+    const ver = latestVersion(pluginDir);
+    if (!ver) return;
+    const skillsDir = path.join(pluginDir, ver, 'skills');
+    if (!fs.existsSync(skillsDir)) return;
+    for (const skillEntry of fs.readdirSync(skillsDir, { withFileTypes: true })) {
+      if (!skillEntry.isDirectory()) continue;
+      const skillFile = path.join(skillsDir, skillEntry.name, 'SKILL.md');
+      if (fs.existsSync(skillFile)) {
+        add(readSkillFile(skillFile, pluginName, 'plugin'));
       }
     }
   }
 
-  for (const marketplace of fs.readdirSync(pluginsDir)) {
-    const pluginsSubDir = path.join(pluginsDir, marketplace, 'plugins');
-    if (!fs.existsSync(pluginsSubDir)) continue;
-    for (const plugin of fs.readdirSync(pluginsSubDir)) {
-      scanSkillsDir(path.join(pluginsSubDir, plugin, 'skills'), plugin);
+  const cacheDir = path.join(CLAUDE_DIR, 'plugins', 'cache');
+  if (fs.existsSync(cacheDir)) {
+    for (const marketplace of fs.readdirSync(cacheDir)) {
+      const marketplaceDir = path.join(cacheDir, marketplace);
+      if (!fs.statSync(marketplaceDir).isDirectory()) continue;
+      for (const plugin of fs.readdirSync(marketplaceDir)) {
+        scanPluginCache(path.join(marketplaceDir, plugin), plugin);
+      }
     }
   }
 
-  return skills;
+  return skills.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function discoverAgents() {
@@ -153,36 +191,11 @@ async function fetchSkillsBrowse(url) {
   return JSON.parse(raw);
 }
 
-function discoverCommands() {
-  const commands = [];
-  const commandsDir = path.join(CLAUDE_DIR, 'commands');
-  if (!fs.existsSync(commandsDir)) return commands;
-
-  function scan(dir, prefix) {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const fullPath = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        scan(fullPath, prefix ? `${prefix}:${entry.name}` : entry.name);
-      } else if (entry.name.endsWith('.md')) {
-        const baseName = path.basename(entry.name, '.md');
-        const name = prefix ? `${prefix}:${baseName}` : baseName;
-        const content = fs.readFileSync(fullPath, 'utf8').trim();
-        const firstLine = content.split('\n')[0].replace(/^#+\s*/, '').trim();
-        commands.push({ name, description: firstLine, file: fullPath });
-      }
-    }
-  }
-
-  scan(commandsDir, '');
-  return commands.sort((a, b) => a.name.localeCompare(b.name));
-}
-
 module.exports = (app) => {
   app.get('/api/mcp', (req, res) => res.json(discoverMcpServers()));
   app.get('/api/plugins', (req, res) => res.json(discoverPlugins()));
   app.get('/api/skills', (req, res) => res.json(discoverSkills()));
   app.get('/api/agents', (req, res) => res.json(discoverAgents()));
-  app.get('/api/commands', (req, res) => res.json(discoverCommands()));
 
   app.get('/api/skills/search', async (req, res) => {
     const q = req.query.q;

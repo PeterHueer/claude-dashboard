@@ -1,27 +1,32 @@
 // ── Skills section ────────────────────────────────────────────────────────────
-let skillsView = 'installed';
+let skillsView = 'my';
 
 loaders.skills = async function loadSkills() {
   const container = document.getElementById('section-skills');
-  container.innerHTML = renderSkillsToggle() + '<div id="skills-content"></div>';
-  if (skillsView === 'installed') {
-    await renderInstalledSkills();
+  container.innerHTML = renderSkillsTabs() + '<div id="skills-content"></div>';
+  if (skillsView === 'my') {
+    await renderInstalledSkills('user');
+  } else if (skillsView === 'plugins') {
+    await renderInstalledSkills('plugin');
   } else {
     await renderDiscoverSkills();
   }
 };
 
-function renderSkillsToggle() {
+function renderSkillsTabs() {
+  const tabs = [
+    { id: 'my',      label: 'My Skills' },
+    { id: 'plugins', label: 'Plugins' },
+    { id: 'discover',label: 'Discover' },
+  ];
   return `
     <div class="flex gap-2 mb-5">
-      <button id="tab-installed" onclick="switchSkillsView('installed')"
-        class="btn btn-sm ${skillsView === 'installed' ? 'btn-primary' : 'btn-ghost'}">
-        Installed
-      </button>
-      <button id="tab-discover" onclick="switchSkillsView('discover')"
-        class="btn btn-sm ${skillsView === 'discover' ? 'btn-primary' : 'btn-ghost'}">
-        Discover
-      </button>
+      ${tabs.map(t => `
+        <button onclick="switchSkillsView('${t.id}')"
+          class="btn btn-sm ${skillsView === t.id ? 'btn-primary' : 'btn-ghost'}">
+          ${t.label}
+        </button>
+      `).join('')}
     </div>
   `;
 }
@@ -31,12 +36,14 @@ async function switchSkillsView(view) {
   await loaders.skills();
 }
 
-async function renderInstalledSkills() {
+async function renderInstalledSkills(source) {
   const content = document.getElementById('skills-content');
   content.innerHTML = '<div class="text-base-content opacity-50 text-sm">Loading skills...</div>';
-  const skills = await api('/api/skills');
+  const all = await api('/api/skills');
+  const skills = all.filter(s => s.source === source);
+
   if (skills.length === 0) {
-    content.innerHTML = '<p class="text-sm opacity-50">No skills installed.</p>';
+    content.innerHTML = `<p class="text-sm opacity-50">No ${source === 'user' ? 'personal' : 'plugin'} skills found.</p>`;
     return;
   }
 
@@ -49,7 +56,7 @@ async function renderInstalledSkills() {
 
   content.innerHTML = Object.entries(grouped).map(([plugin, items]) => `
     <div class="mb-6">
-      <h2 class="text-lg font-bold mb-3 text-primary">${escHtml(plugin)}</h2>
+      ${source === 'plugin' ? `<h2 class="text-lg font-bold mb-3 text-primary">${escHtml(plugin)}</h2>` : ''}
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         ${items.map(skill => `
           <div class="card bg-base-100 shadow-sm">
@@ -61,10 +68,11 @@ async function renderInstalledSkills() {
                   onclick="copyInvoke('${escAttr(skill.name)}')">
                   Copy invoke
                 </button>
+                ${source === 'user' ? `
                 <button class="btn btn-xs btn-error btn-outline"
                   onclick="removeSkill('${escAttr(skill.file)}')">
                   Remove
-                </button>
+                </button>` : ''}
               </div>
             </div>
           </div>
@@ -159,7 +167,7 @@ function renderSkillCards(skills) {
   return `
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
       ${skills.map(s => {
-        const installCmd = `npx skills add ${s.source}@${s.skillId} --yes --global`;
+        const installCmd = `npx skills add ${s.source}@${s.skillId}`;
         const skillUrl = `https://skills.sh/${s.id || s.source + '/' + s.skillId}`;
         const installs = s.installs >= 1000 ? `${(s.installs / 1000).toFixed(1)}K` : String(s.installs);
         return `
