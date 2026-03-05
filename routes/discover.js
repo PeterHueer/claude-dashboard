@@ -131,6 +131,28 @@ function discoverAgents() {
   return agents;
 }
 
+// Extract initialSkills array embedded in skills.sh Next.js RSC payload
+async function fetchSkillsBrowse(url) {
+  const res = await fetch(url, {
+    signal: AbortSignal.timeout(10000),
+    headers: { 'User-Agent': 'Mozilla/5.0' },
+  });
+  const html = await res.text();
+  // Data lives inside a __next_f.push JS string — quotes are escaped as \"
+  const marker = '\\"initialSkills\\":[{';
+  const idx = html.indexOf(marker);
+  if (idx === -1) return null;
+  const start = idx + marker.length - 2; // rewind to the [
+  let depth = 0, i = start;
+  for (; i < html.length; i++) {
+    if (html[i] === '[') depth++;
+    else if (html[i] === ']') { depth--; if (depth === 0) break; }
+  }
+  // Unescape the JSON-within-JS-string, then parse
+  const raw = html.slice(start, i + 1).replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+  return JSON.parse(raw);
+}
+
 module.exports = (app) => {
   app.get('/api/mcp', (req, res) => res.json(discoverMcpServers()));
   app.get('/api/plugins', (req, res) => res.json(discoverPlugins()));
@@ -151,4 +173,22 @@ module.exports = (app) => {
       res.status(502).json({ error: 'Failed to reach skills.sh', detail: err.message });
     }
   });
+
+  const browseRoutes = {
+    '/api/browse/alltime':  'https://skills.sh/',
+    '/api/browse/trending': 'https://skills.sh/trending',
+    '/api/browse/hot':      'https://skills.sh/hot',
+  };
+
+  for (const [route, url] of Object.entries(browseRoutes)) {
+    app.get(route, async (req, res) => {
+      try {
+        const skills = await fetchSkillsBrowse(url);
+        if (!skills) return res.status(502).json({ error: 'Could not parse skills.sh page' });
+        res.json(skills);
+      } catch (err) {
+        res.status(502).json({ error: 'Failed to reach skills.sh', detail: err.message });
+      }
+    });
+  }
 };
