@@ -8,8 +8,12 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { display: flex; height: 100vh; overflow: hidden; }
-    #main { flex: 1; overflow-y: auto; padding-bottom: 220px; }
-    #terminal { position: fixed; bottom: 0; left: 240px; right: 0; height: 200px; z-index: 50; }
+    #main { flex: 1; overflow-y: auto; padding-bottom: 220px; transition: margin-right 0.3s ease; }
+    #terminal { position: fixed; bottom: 0; left: 240px; right: 0; height: 200px; z-index: 50; transition: right 0.3s ease; }
+    #side-panel { position: fixed; top: 0; right: -520px; width: 520px; bottom: 0; z-index: 60; display: flex; flex-direction: column; transition: right 0.3s ease; }
+    #side-panel.open { right: 0; }
+    body.panel-open #main { margin-right: 520px; }
+    body.panel-open #terminal { right: 520px; }
   </style>
 </head>
 <body class="bg-base-200">
@@ -47,6 +51,15 @@
       <button onclick="clearTerminal()" class="btn btn-xs btn-ghost">clear</button>
     </div>
     <div id="terminal-output" class="font-mono text-xs p-3 h-36 overflow-y-auto text-base-content opacity-80 whitespace-pre-wrap"></div>
+  </div>
+
+  <!-- Side panel -->
+  <div id="side-panel" class="bg-base-300 border-l border-base-content border-opacity-20">
+    <div class="flex items-center justify-between px-4 py-2 border-b border-base-content border-opacity-10 flex-shrink-0">
+      <span id="side-panel-title" class="text-xs font-mono opacity-60 truncate"></span>
+      <button onclick="closeSidePanel()" class="btn btn-xs btn-ghost ml-2">✕</button>
+    </div>
+    <iframe id="side-panel-iframe" src="" class="flex-1 w-full border-0" style="padding-bottom:200px"></iframe>
   </div>
 
   <script src="app.js"></script>

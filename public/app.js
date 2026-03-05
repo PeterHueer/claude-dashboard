@@ -140,12 +140,9 @@ async function renderDiscoverSkills() {
       <button class="btn btn-sm btn-primary" onclick="searchSkills()">Search</button>
     </div>
     <div class="flex items-center gap-3 mb-5">
-      <a href="https://skills.sh/" target="_blank" rel="noopener noreferrer"
-        class="btn btn-xs btn-ghost">All Time ↗</a>
-      <a href="https://skills.sh/trending" target="_blank" rel="noopener noreferrer"
-        class="btn btn-xs btn-ghost">Trending ↗</a>
-      <a href="https://skills.sh/hot" target="_blank" rel="noopener noreferrer"
-        class="btn btn-xs btn-ghost">Hot ↗</a>
+      <button class="btn btn-xs btn-ghost" onclick="openSidePanel('https://skills.sh/', 'skills.sh — All Time')">All Time</button>
+      <button class="btn btn-xs btn-ghost" onclick="openSidePanel('https://skills.sh/trending', 'skills.sh — Trending')">Trending</button>
+      <button class="btn btn-xs btn-ghost" onclick="openSidePanel('https://skills.sh/hot', 'skills.sh — Hot')">Hot</button>
       <span class="text-xs opacity-30">powered by skills.sh</span>
     </div>
     <div id="skills-search-results">
@@ -196,8 +193,7 @@ async function searchSkills() {
               <p class="text-xs opacity-50">${escHtml(s.source)}</p>
               <p class="text-xs text-success mt-1">${escHtml(installs)} installs</p>
               <div class="card-actions justify-end mt-2">
-                ${skillUrl.startsWith('https://') ? `<a href="${escHtml(skillUrl)}" target="_blank" rel="noopener noreferrer"
-                  class="btn btn-xs btn-ghost">↗ View</a>` : ''}
+                ${skillUrl.startsWith('https://') ? `<button class="btn btn-xs btn-ghost" onclick="openSidePanel('${escAttr(skillUrl)}', '${escAttr(s.name)}')">↗ View</button>` : ''}
                 <button
                   data-install-cmd="${escHtml(installCmd)}"
                   data-skill-id="${escHtml(s.skillId)}"
@@ -350,8 +346,7 @@ function renderDiscoverMcp() {
             Install via your <span class="font-mono text-xs bg-base-200 px-1 rounded">~/.mcp.json</span> config.
           </p>
           <div class="card-actions">
-            <a href="https://mcpmarket.com/" target="_blank" rel="noopener noreferrer"
-              class="btn btn-info btn-sm">Browse mcpmarket.com ↗</a>
+            <button class="btn btn-info btn-sm" onclick="openSidePanel('https://mcpmarket.com/', 'mcpmarket.com')">Browse mcpmarket.com</button>
           </div>
         </div>
       </div>
@@ -624,6 +619,20 @@ function escHtml(str) {
 
 function escAttr(str) {
   return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+// ── Side panel ───────────────────────────────────────────────────────────────
+function openSidePanel(url, title) {
+  document.getElementById('side-panel-iframe').src = url;
+  document.getElementById('side-panel-title').textContent = title || url;
+  document.getElementById('side-panel').classList.add('open');
+  document.body.classList.add('panel-open');
+}
+
+function closeSidePanel() {
+  document.getElementById('side-panel').classList.remove('open');
+  document.body.classList.remove('panel-open');
+  document.getElementById('side-panel-iframe').src = '';
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
