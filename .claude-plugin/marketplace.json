@@ -1,0 +1,15 @@
+{
+  "name": "claude-dashboard",
+  "description": "Local web dashboard for managing Claude Code skills, MCP servers, plugins, and agents.",
+  "owner": {
+    "name": "Peter Hüer"
+  },
+  "plugins": [
+    {
+      "name": "dashboard",
+      "source": ".",
+      "description": "Local web dashboard for managing Claude Code skills, MCP servers, plugins, and agents.",
+      "version": "1.0.0"
+    }
+  ]
+}
