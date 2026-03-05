@@ -60,7 +60,17 @@ Open: http://127.0.0.1:7777
 
 ## Claude Code command
 
-Use `/dashboard` inside Claude Code to start the server and open the browser automatically.
+Use `/dashboard:open` inside Claude Code to start the server and open the browser automatically.
+
+## Plugin installation
+
+This repo is a valid Claude Code plugin. Once published to GitHub, install it with:
+
+```bash
+claude plugin install github:your-username/claude-dashboard
+```
+
+After install, `/dashboard:open` is available in every Claude Code session.
 
 ## Sections
 
