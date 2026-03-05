@@ -386,13 +386,17 @@ loaders.agents = async function loadAgents() {
               <div class="card-body p-4">
                 <h4 class="font-semibold text-sm text-base-content">${escHtml(agent.name)}</h4>
                 <p class="text-xs opacity-60 mt-1 leading-relaxed flex-1">${escHtml(agent.description || 'No description')}</p>
-                ${agent.file ? `
                 <div class="card-actions justify-end mt-2">
+                  <button class="btn btn-xs btn-outline btn-primary"
+                    onclick="copyInvokeAgent('${escAttr(agent.name)}')">
+                    Copy invoke
+                  </button>
+                  ${agent.file ? `
                   <button class="btn btn-xs btn-error btn-outline"
                     onclick="removeAgent('${escAttr(agent.file)}')">
                     Remove
-                  </button>
-                </div>` : ''}
+                  </button>` : ''}
+                </div>
               </div>
             </div>
           `).join('')}
@@ -401,6 +405,11 @@ loaders.agents = async function loadAgents() {
     `).join('')}
   `;
 };
+
+function copyInvokeAgent(agentName) {
+  navigator.clipboard.writeText(`Use agent: ${agentName}`)
+    .then(() => log(`Copied: Use agent: ${agentName}`));
+}
 
 async function removeAgent(filePath) {
   if (!confirm('Move this agent to trash? You can restore it from the Trash section.')) return;
