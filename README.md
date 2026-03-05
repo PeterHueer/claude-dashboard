@@ -2,7 +2,7 @@
 
 Local web dashboard for managing Claude Code skills, MCP servers, plugins, agents, and custom commands.
 
-![Claude AI Power Tools Dashboard](example.png)
+<img src="example.png" alt="Claude AI Power Tools Dashboard" width="800">
 
 ## Features
 
