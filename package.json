@@ -1,6 +1,6 @@
 {
   "name": "claude-dashboard",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Local dashboard for Claude Code AI toolchain",
   "main": "server.js",
   "scripts": {
