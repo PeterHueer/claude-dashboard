@@ -2,6 +2,18 @@
 
 Local web dashboard for managing Claude Code skills, MCP servers, plugins, agents, and custom commands.
 
+## Features
+
+- **Overview** — at-a-glance stat cards for all sections, click to navigate
+- **Skills** — browse installed skills grouped by plugin; copy the invoke string in one click
+- **Skill discovery** — search [skills.sh](https://skills.sh) and browse All Time / Trending / Hot; install directly from the dashboard
+- **MCP Servers** — view all active MCP server configurations with their source (global or plugin)
+- **Plugins** — inspect installed plugins with type badges (skill / mcp)
+- **Agents** — explore available agents across all installed plugins
+- **Custom Commands** — browse all `/slash-commands` grouped by prefix, with descriptions and copy-invoke buttons
+- **Terminal panel** — live CLI output streamed to the browser for every action
+- **`/dashboard` command** — type `/dashboard` in Claude Code to start the server and open the browser instantly
+
 ## Prerequisites
 
 - Node.js 18+
