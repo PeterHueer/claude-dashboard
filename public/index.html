@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html data-theme="night" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude AI Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { display: flex; height: 100vh; overflow: hidden; }
+    #main { flex: 1; overflow-y: auto; padding-bottom: 220px; }
+    #terminal { position: fixed; bottom: 0; left: 240px; right: 0; height: 200px; z-index: 50; }
+  </style>
+</head>
+<body class="bg-base-200">
+
+  <!-- Sidebar -->
+  <aside class="w-60 bg-base-300 flex flex-col h-full">
+    <div class="p-4 text-lg font-bold text-primary">Claude Dashboard</div>
+    <ul class="menu flex-1 px-2">
+      <li><a onclick="showSection('overview')" id="nav-overview" class="active">Overview</a></li>
+      <li><a onclick="showSection('skills')" id="nav-skills">Skills</a></li>
+      <li><a onclick="showSection('mcp')" id="nav-mcp">MCP Servers</a></li>
+      <li><a onclick="showSection('plugins')" id="nav-plugins">Plugins</a></li>
+    </ul>
+    <div class="p-4 text-xs text-base-content opacity-50">v1.0.0 · localhost:3000</div>
+  </aside>
+
+  <!-- Main content -->
+  <div id="main" class="p-6">
+    <div id="section-overview"></div>
+    <div id="section-skills" class="hidden"></div>
+    <div id="section-mcp" class="hidden"></div>
+    <div id="section-plugins" class="hidden"></div>
+  </div>
+
+  <!-- Terminal panel -->
+  <div id="terminal" class="bg-base-300 border-t border-base-content border-opacity-20">
+    <div class="flex items-center justify-between px-4 py-1 border-b border-base-content border-opacity-10">
+      <span class="text-xs font-mono text-success">$ terminal output</span>
+      <button onclick="clearTerminal()" class="btn btn-xs btn-ghost">clear</button>
+    </div>
+    <div id="terminal-output" class="font-mono text-xs p-3 h-36 overflow-y-auto text-base-content opacity-80 whitespace-pre-wrap"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
