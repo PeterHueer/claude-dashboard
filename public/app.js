@@ -140,9 +140,9 @@ async function renderDiscoverSkills() {
       <button class="btn btn-sm btn-primary" onclick="searchSkills()">Search</button>
     </div>
     <div class="flex items-center gap-3 mb-5">
-      <button class="btn btn-xs btn-ghost" onclick="openSidePanel('alltime', 'skills.sh — All Time')">All Time</button>
-      <button class="btn btn-xs btn-ghost" onclick="openSidePanel('trending', 'skills.sh — Trending')">Trending</button>
-      <button class="btn btn-xs btn-ghost" onclick="openSidePanel('hot', 'skills.sh — Hot')">Hot</button>
+      <button class="btn btn-xs btn-ghost" onclick="browseSkills('alltime', 'All Time')">All Time</button>
+      <button class="btn btn-xs btn-ghost" onclick="browseSkills('trending', 'Trending')">Trending</button>
+      <button class="btn btn-xs btn-ghost" onclick="browseSkills('hot', 'Hot')">Hot</button>
       <span class="text-xs opacity-30">powered by skills.sh</span>
     </div>
     <div id="skills-search-results">
@@ -346,7 +346,7 @@ function renderDiscoverMcp() {
             Install via your <span class="font-mono text-xs bg-base-200 px-1 rounded">~/.mcp.json</span> config.
           </p>
           <div class="card-actions">
-            <button class="btn btn-info btn-sm" onclick="openSidePanel('mcpmarket', 'mcpmarket.com')">Browse mcpmarket.com</button>
+            <a href="https://mcpmarket.com/" target="_blank" rel="noopener noreferrer" class="btn btn-info btn-sm">Browse mcpmarket.com ↗</a>
           </div>
         </div>
       </div>
@@ -621,72 +621,51 @@ function escAttr(str) {
   return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
 
-// ── Side panel ───────────────────────────────────────────────────────────────
-function openSidePanel(type, title) {
-  document.getElementById('side-panel-title').textContent = title || type;
-  document.getElementById('side-panel').classList.add('open');
-  document.body.classList.add('panel-open');
-  const content = document.getElementById('side-panel-content');
-  content.innerHTML = '<div class="flex justify-center pt-8"><span class="loading loading-spinner loading-md"></span></div>';
+// ── Browse skills (All Time / Trending / Hot) ────────────────────────────────
+async function browseSkills(type, label) {
+  const results = document.getElementById('skills-search-results');
+  results.innerHTML = '<span class="loading loading-spinner loading-sm"></span>';
 
-  if (type === 'mcpmarket') {
-    content.innerHTML = `
-      <div class="card bg-base-100 shadow-sm border border-info border-opacity-20 mt-4">
-        <div class="card-body p-5">
-          <h3 class="card-title text-base text-info">MCP Market</h3>
-          <p class="text-sm opacity-70 mb-4">Browse the MCP server marketplace to find integrations for databases, APIs, productivity tools, and more.</p>
-          <a href="https://mcpmarket.com/" target="_blank" rel="noopener noreferrer"
-            class="btn btn-info btn-sm w-fit">Open mcpmarket.com ↗</a>
-        </div>
-      </div>
-      <p class="text-xs opacity-30 mt-3">mcpmarket.com does not expose a public API — browse and configure servers manually via ~/.mcp.json.</p>
-    `;
+  let data;
+  try {
+    data = await api(`/api/browse/${type}`);
+  } catch (err) {
+    results.innerHTML = `<p class="text-sm text-error">Network error: ${escHtml(err.message)}</p>`;
+    return;
+  }
+  if (data.error) {
+    results.innerHTML = `<p class="text-sm text-error">${escHtml(data.error)}</p>`;
     return;
   }
 
-  const browseEndpoints = { alltime: '/api/browse/alltime', trending: '/api/browse/trending', hot: '/api/browse/hot' };
-  const endpoint = browseEndpoints[type];
-  if (!endpoint) return;
-
-  api(endpoint).then(data => {
-    if (data.error) {
-      content.innerHTML = `<p class="text-sm text-error mt-4">${escHtml(data.error)}</p>`;
-      return;
-    }
-    const skills = Array.isArray(data) ? data : [];
-    content.innerHTML = `
-      <p class="text-xs opacity-40 mb-4">${skills.length} skills</p>
-      <div class="flex flex-col gap-2">
-        ${skills.map((s, i) => {
-          const installs = s.installs >= 1000 ? `${(s.installs / 1000).toFixed(1)}K` : String(s.installs);
-          const installCmd = `npx skills add ${s.source}@${s.skillId} --yes --global`;
-          const skillUrl = `https://skills.sh/${s.source}/${s.skillId}`;
-          return `
-            <div class="flex items-center gap-3 bg-base-100 rounded-lg px-3 py-2">
-              <span class="text-xs opacity-30 w-6 text-right flex-shrink-0">${i + 1}</span>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium truncate">${escHtml(s.name)}</p>
-                <p class="text-xs opacity-40 truncate">${escHtml(s.source)}</p>
+  const skills = Array.isArray(data) ? data : [];
+  results.innerHTML = `
+    <p class="text-xs opacity-50 mb-3">${escHtml(label)} — ${skills.length} skills</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      ${skills.map(s => {
+        const installCmd = `npx skills add ${s.source}@${s.skillId} --yes --global`;
+        const skillUrl = `https://skills.sh/${s.id || s.source + '/' + s.skillId}`;
+        const installs = s.installs >= 1000 ? `${(s.installs / 1000).toFixed(1)}K` : String(s.installs);
+        return `
+          <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+              <h3 class="card-title text-sm">${escHtml(s.name)}</h3>
+              <p class="text-xs opacity-50">${escHtml(s.source)}</p>
+              <p class="text-xs text-success mt-1">${escHtml(installs)} installs</p>
+              <div class="card-actions justify-end mt-2">
+                <a href="${escHtml(skillUrl)}" target="_blank" rel="noopener noreferrer"
+                  class="btn btn-xs btn-ghost">↗ View</a>
+                <button class="btn btn-xs btn-primary"
+                  data-install-cmd="${escAttr(installCmd)}"
+                  data-skill-id="${escAttr(s.skillId)}"
+                  onclick="installSkill(this)">Install</button>
               </div>
-              <span class="text-xs text-success flex-shrink-0">${escHtml(installs)}</span>
-              <button class="btn btn-xs btn-primary flex-shrink-0"
-                data-install-cmd="${escAttr(installCmd)}"
-                data-skill-id="${escAttr(s.skillId)}"
-                onclick="installSkill(this)">Install</button>
             </div>
-          `;
-        }).join('')}
-      </div>
-    `;
-  }).catch(err => {
-    content.innerHTML = `<p class="text-sm text-error mt-4">Error: ${escHtml(err.message)}</p>`;
-  });
-}
-
-function closeSidePanel() {
-  document.getElementById('side-panel').classList.remove('open');
-  document.body.classList.remove('panel-open');
-  document.getElementById('side-panel-content').innerHTML = '';
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
