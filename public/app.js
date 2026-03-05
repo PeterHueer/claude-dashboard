@@ -139,15 +139,13 @@ async function renderDiscoverSkills() {
       />
       <button class="btn btn-sm btn-primary" onclick="searchSkills()">Search</button>
     </div>
-    <div class="flex items-center justify-between mb-5">
-      <div class="flex gap-1">
-        <a href="https://skills.sh/" target="_blank" rel="noopener noreferrer"
-          class="btn btn-xs btn-ghost">All Time ↗</a>
-        <a href="https://skills.sh/trending" target="_blank" rel="noopener noreferrer"
-          class="btn btn-xs btn-ghost">Trending ↗</a>
-        <a href="https://skills.sh/hot" target="_blank" rel="noopener noreferrer"
-          class="btn btn-xs btn-ghost">Hot ↗</a>
-      </div>
+    <div class="flex items-center gap-3 mb-5">
+      <a href="https://skills.sh/" target="_blank" rel="noopener noreferrer"
+        class="btn btn-xs btn-ghost">All Time ↗</a>
+      <a href="https://skills.sh/trending" target="_blank" rel="noopener noreferrer"
+        class="btn btn-xs btn-ghost">Trending ↗</a>
+      <a href="https://skills.sh/hot" target="_blank" rel="noopener noreferrer"
+        class="btn btn-xs btn-ghost">Hot ↗</a>
       <span class="text-xs opacity-30">powered by skills.sh</span>
     </div>
     <div id="skills-search-results">
