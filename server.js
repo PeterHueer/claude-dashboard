@@ -7,11 +7,29 @@ const { execSync } = require('child_process');
 const app = express();
 const PORT = 3000;
 const CLAUDE_DIR = path.join(os.homedir(), '.claude');
+const TRASH_DIR = path.join(CLAUDE_DIR, '.dashboard-trash');
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Helper functions
+
+function moveToTrash(filePath, meta) {
+  if (!fs.existsSync(TRASH_DIR)) {
+    fs.mkdirSync(TRASH_DIR, { recursive: true });
+  }
+  const id = `${Date.now()}-${path.basename(filePath)}`;
+  const trashFile = path.join(TRASH_DIR, id);
+  const trashMeta = path.join(TRASH_DIR, id.replace(/\.md$/, '.json'));
+  fs.copyFileSync(filePath, trashFile);
+  fs.writeFileSync(trashMeta, JSON.stringify({
+    ...meta,
+    originalPath: filePath,
+    deletedAt: new Date().toISOString(),
+    id,
+  }));
+  fs.unlinkSync(filePath);
+}
 
 function readJsonFile(filePath) {
   try {
@@ -172,7 +190,7 @@ function discoverAgents() {
         || content.match(/^description:\s*\|\s*\n\s*(.+)$/m);
       const agentName = nameMatch?.[1]?.trim() || path.basename(entry.name, '.md');
       const description = descMatch?.[1]?.trim().replace(/<[^>]+>/g, '').substring(0, 150) || '';
-      agents.push({ name: agentName, description, plugin: pluginName });
+      agents.push({ name: agentName, description, plugin: pluginName, file: fullPath });
     }
   }
 
@@ -228,7 +246,25 @@ app.delete('/api/skills', (req, res) => {
   if (!fs.existsSync(cleanPath)) {
     return res.status(404).json({ error: 'File not found' });
   }
-  fs.unlinkSync(cleanPath);
+  moveToTrash(cleanPath, { type: 'skill' });
+  res.json({ success: true });
+});
+
+// DELETE /api/agents — move an agent file to trash
+
+app.delete('/api/agents', (req, res) => {
+  const { file } = req.body;
+  if (!file || typeof file !== 'string') {
+    return res.status(400).json({ error: 'Missing file path' });
+  }
+  const cleanPath = path.normalize(file);
+  if (!cleanPath.startsWith(CLAUDE_DIR) || !cleanPath.endsWith('.md')) {
+    return res.status(403).json({ error: 'Path not permitted' });
+  }
+  if (!fs.existsSync(cleanPath)) {
+    return res.status(404).json({ error: 'File not found' });
+  }
+  moveToTrash(cleanPath, { type: 'agent' });
   res.json({ success: true });
 });
 
@@ -246,6 +282,62 @@ app.delete('/api/mcp', (req, res) => {
   }
   delete config.mcpServers[name];
   fs.writeFileSync(mcpPath, JSON.stringify(config, null, 2));
+  res.json({ success: true });
+});
+
+// GET /api/trash — list trashed items
+
+app.get('/api/trash', (req, res) => {
+  if (!fs.existsSync(TRASH_DIR)) return res.json([]);
+  const files = fs.readdirSync(TRASH_DIR).filter(f => f.endsWith('.json'));
+  const items = files.map(f => {
+    const meta = readJsonFile(path.join(TRASH_DIR, f));
+    return meta;
+  }).filter(Boolean).sort((a, b) => b.deletedAt?.localeCompare(a.deletedAt ?? '') ?? 0);
+  res.json(items);
+});
+
+// POST /api/trash/restore — restore an item from trash to its original path
+
+function isValidTrashId(id) {
+  return typeof id === 'string' && /^[0-9]+-[^/\\]+\.md$/.test(id);
+}
+
+app.post('/api/trash/restore', (req, res) => {
+  const { id } = req.body;
+  if (!isValidTrashId(id)) {
+    return res.status(400).json({ error: 'Invalid trash id' });
+  }
+  const meta = readJsonFile(path.join(TRASH_DIR, id.replace(/\.md$/, '.json')));
+  if (!meta) return res.status(404).json({ error: 'Item not found in trash' });
+
+  const originalPath = path.normalize(meta.originalPath);
+  if (!originalPath.startsWith(CLAUDE_DIR) || !originalPath.endsWith('.md')) {
+    return res.status(403).json({ error: 'Original path not permitted' });
+  }
+
+  const trashFile = path.join(TRASH_DIR, id);
+  if (!fs.existsSync(trashFile)) return res.status(404).json({ error: 'Trash file missing' });
+
+  fs.mkdirSync(path.dirname(originalPath), { recursive: true });
+  fs.copyFileSync(trashFile, originalPath);
+  fs.unlinkSync(trashFile);
+  fs.unlinkSync(path.join(TRASH_DIR, id.replace(/\.md$/, '.json')));
+  res.json({ success: true });
+});
+
+// DELETE /api/trash — permanently delete an item from trash
+
+app.delete('/api/trash', (req, res) => {
+  const { id } = req.body;
+  if (!isValidTrashId(id)) {
+    return res.status(400).json({ error: 'Invalid trash id' });
+  }
+  const trashFile = path.join(TRASH_DIR, id);
+  const trashMeta = path.join(TRASH_DIR, id.replace(/\.md$/, '.json'));
+  if (!fs.existsSync(trashFile)) return res.status(404).json({ error: 'Item not found' });
+  fs.unlinkSync(trashFile);
+  if (fs.existsSync(trashMeta)) fs.unlinkSync(trashMeta);
   res.json({ success: true });
 });
 
