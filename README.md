@@ -2,6 +2,8 @@
 
 Local web dashboard for managing Claude Code skills, MCP servers, plugins, agents, and custom commands.
 
+![Claude AI Power Tools Dashboard](example.png)
+
 ## Features
 
 - **Overview** — at-a-glance stat cards for all sections, click to navigate
