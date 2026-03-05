@@ -369,19 +369,23 @@ loaders.agents = async function loadAgents() {
   }, {});
 
   container.innerHTML = `
-    <h2 class="text-lg font-bold mb-4 text-primary">Agents</h2>
+    <h2 class="text-lg font-bold mb-5 text-primary">Agents</h2>
     ${Object.entries(grouped).map(([plugin, items]) => `
-      <div class="mb-6">
-        <h3 class="text-sm font-semibold mb-3 opacity-60">${escHtml(plugin)}</h3>
+      <div class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="flex items-center gap-2 bg-base-100 border border-base-content border-opacity-10 rounded-lg px-3 py-2 shadow-sm">
+            <span class="text-base-content opacity-40 text-xs">plugin</span>
+            <span class="font-bold text-secondary text-sm">${escHtml(plugin)}</span>
+            <span class="badge badge-ghost badge-sm">${items.length}</span>
+          </div>
+          <div class="flex-1 border-t border-base-content border-opacity-10"></div>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           ${items.map(agent => `
-            <div class="card bg-base-100 shadow-sm">
+            <div class="card bg-base-100 shadow-sm border border-base-content border-opacity-5 hover:border-secondary hover:border-opacity-40 transition-colors">
               <div class="card-body p-4">
-                <div class="flex items-center justify-between gap-2">
-                  <h4 class="card-title text-sm">${escHtml(agent.name)}</h4>
-                  <span class="badge badge-secondary badge-sm flex-shrink-0">${escHtml(agent.plugin || 'other')}</span>
-                </div>
-                <p class="text-xs opacity-70 mt-1 flex-1">${escHtml(agent.description || 'No description')}</p>
+                <h4 class="font-semibold text-sm text-base-content">${escHtml(agent.name)}</h4>
+                <p class="text-xs opacity-60 mt-1 leading-relaxed">${escHtml(agent.description || 'No description')}</p>
               </div>
             </div>
           `).join('')}
