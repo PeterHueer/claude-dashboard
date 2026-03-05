@@ -1,3 +1,12 @@
+// ── Utilities ────────────────────────────────────────────────────────────────
+function debounce(fn, delay) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
+}
+
 // ── Navigation ──────────────────────────────────────────────────────────────
 function showSection(name) {
   document.querySelectorAll('[id^="section-"]').forEach(el => el.classList.add('hidden'));
@@ -116,12 +125,15 @@ async function renderInstalledSkills() {
   `).join('');
 }
 
+const debouncedSearchSkills = debounce(searchSkills, 400);
+
 async function renderDiscoverSkills() {
   const content = document.getElementById('skills-content');
   content.innerHTML = `
     <div class="flex gap-2 mb-5">
       <input id="skills-search-input" type="text" placeholder="Search skills..."
         class="input input-bordered input-sm flex-1"
+        oninput="debouncedSearchSkills()"
         onkeydown="if(event.key==='Enter') searchSkills()"
       />
       <button class="btn btn-sm btn-primary" onclick="searchSkills()">Search</button>
