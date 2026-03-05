@@ -578,7 +578,7 @@ loaders.overview = async function loadOverview() {
 
   container.innerHTML = `
     <h2 class="text-lg font-bold mb-4 text-primary">Overview</h2>
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
       <div class="stat bg-base-100 rounded-box shadow-sm cursor-pointer hover:bg-base-200"
            onclick="showSection('skills')">
         <div class="stat-title">Skills</div>
