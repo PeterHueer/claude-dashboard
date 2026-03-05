@@ -130,9 +130,10 @@ const debouncedSearchSkills = debounce(searchSkills, 400);
 async function renderDiscoverSkills() {
   const content = document.getElementById('skills-content');
   content.innerHTML = `
-    <div class="flex gap-2 mb-3">
+    <div class="flex gap-2 mb-3 w-fit">
       <input id="skills-search-input" type="text" placeholder="Search skills..."
-        class="input input-bordered input-sm flex-1"
+        class="input input-bordered input-sm"
+        style="min-width:220px"
         oninput="debouncedSearchSkills()"
         onkeydown="if(event.key==='Enter') searchSkills()"
       />
