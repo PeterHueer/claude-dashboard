@@ -130,13 +130,24 @@ const debouncedSearchSkills = debounce(searchSkills, 400);
 async function renderDiscoverSkills() {
   const content = document.getElementById('skills-content');
   content.innerHTML = `
-    <div class="flex gap-2 mb-5">
+    <div class="flex gap-2 mb-3">
       <input id="skills-search-input" type="text" placeholder="Search skills..."
         class="input input-bordered input-sm flex-1"
         oninput="debouncedSearchSkills()"
         onkeydown="if(event.key==='Enter') searchSkills()"
       />
       <button class="btn btn-sm btn-primary" onclick="searchSkills()">Search</button>
+    </div>
+    <div class="flex items-center justify-between mb-5">
+      <div class="flex gap-1">
+        <a href="https://skills.sh/" target="_blank" rel="noopener noreferrer"
+          class="btn btn-xs btn-ghost">All Time ↗</a>
+        <a href="https://skills.sh/trending" target="_blank" rel="noopener noreferrer"
+          class="btn btn-xs btn-ghost">Trending ↗</a>
+        <a href="https://skills.sh/hot" target="_blank" rel="noopener noreferrer"
+          class="btn btn-xs btn-ghost">Hot ↗</a>
+      </div>
+      <span class="text-xs opacity-30">powered by skills.sh</span>
     </div>
     <div id="skills-search-results">
       <p class="text-sm opacity-50">Search for skills above to discover new ones.</p>
@@ -259,13 +270,44 @@ function copyInvoke(skillName) {
 }
 
 // ── MCP Servers section ───────────────────────────────────────────────────────
+let mcpView = 'installed';
+
 loaders.mcp = async function loadMcp() {
   const container = document.getElementById('section-mcp');
-  container.innerHTML = '<div class="text-base-content opacity-50 text-sm">Loading MCP servers...</div>';
+  container.innerHTML = renderMcpToggle() + '<div id="mcp-content"></div>';
+  if (mcpView === 'installed') {
+    await renderInstalledMcp();
+  } else {
+    renderDiscoverMcp();
+  }
+};
+
+function renderMcpToggle() {
+  return `
+    <div class="flex gap-2 mb-5">
+      <button onclick="switchMcpView('installed')"
+        class="btn btn-sm ${mcpView === 'installed' ? 'btn-primary' : 'btn-ghost'}">
+        Installed
+      </button>
+      <button onclick="switchMcpView('discover')"
+        class="btn btn-sm ${mcpView === 'discover' ? 'btn-primary' : 'btn-ghost'}">
+        Discover
+      </button>
+    </div>
+  `;
+}
+
+async function switchMcpView(view) {
+  mcpView = view;
+  await loaders.mcp();
+}
+
+async function renderInstalledMcp() {
+  const content = document.getElementById('mcp-content');
+  content.innerHTML = '<div class="text-base-content opacity-50 text-sm">Loading MCP servers...</div>';
   const servers = await api('/api/mcp');
 
-  container.innerHTML = `
-    <h2 class="text-lg font-bold mb-4 text-primary">MCP Servers</h2>
+  content.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
       ${servers.map(s => {
         const isPlugin = s.source !== 'global';
@@ -295,7 +337,29 @@ loaders.mcp = async function loadMcp() {
       }).join('')}
     </div>
   `;
-};
+}
+
+function renderDiscoverMcp() {
+  const content = document.getElementById('mcp-content');
+  content.innerHTML = `
+    <div class="max-w-lg">
+      <div class="card bg-base-100 shadow-sm border border-info border-opacity-20">
+        <div class="card-body p-6">
+          <h3 class="card-title text-base text-info mb-1">Discover MCP Servers</h3>
+          <p class="text-sm opacity-70 mb-4">
+            Browse the MCP Server marketplace to find servers for databases, APIs, tools, and more.
+            Install via your <span class="font-mono text-xs bg-base-200 px-1 rounded">~/.mcp.json</span> config.
+          </p>
+          <div class="card-actions">
+            <a href="https://mcpmarket.com/" target="_blank" rel="noopener noreferrer"
+              class="btn btn-info btn-sm">Browse mcpmarket.com ↗</a>
+          </div>
+        </div>
+      </div>
+      <p class="text-xs opacity-30 mt-3">mcpmarket.com does not provide a public search API — browse and configure servers manually.</p>
+    </div>
+  `;
+}
 
 async function removeMcp(name) {
   if (!confirm(`Remove MCP server "${name}" from global config?`)) return;
