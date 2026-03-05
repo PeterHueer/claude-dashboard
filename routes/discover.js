@@ -153,11 +153,36 @@ async function fetchSkillsBrowse(url) {
   return JSON.parse(raw);
 }
 
+function discoverCommands() {
+  const commands = [];
+  const commandsDir = path.join(CLAUDE_DIR, 'commands');
+  if (!fs.existsSync(commandsDir)) return commands;
+
+  function scan(dir, prefix) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        scan(fullPath, prefix ? `${prefix}:${entry.name}` : entry.name);
+      } else if (entry.name.endsWith('.md')) {
+        const baseName = path.basename(entry.name, '.md');
+        const name = prefix ? `${prefix}:${baseName}` : baseName;
+        const content = fs.readFileSync(fullPath, 'utf8').trim();
+        const firstLine = content.split('\n')[0].replace(/^#+\s*/, '').trim();
+        commands.push({ name, description: firstLine, file: fullPath });
+      }
+    }
+  }
+
+  scan(commandsDir, '');
+  return commands.sort((a, b) => a.name.localeCompare(b.name));
+}
+
 module.exports = (app) => {
   app.get('/api/mcp', (req, res) => res.json(discoverMcpServers()));
   app.get('/api/plugins', (req, res) => res.json(discoverPlugins()));
   app.get('/api/skills', (req, res) => res.json(discoverSkills()));
   app.get('/api/agents', (req, res) => res.json(discoverAgents()));
+  app.get('/api/commands', (req, res) => res.json(discoverCommands()));
 
   app.get('/api/skills/search', async (req, res) => {
     const q = req.query.q;

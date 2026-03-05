@@ -23,11 +23,13 @@
       <li><a onclick="showSection('mcp')" id="nav-mcp">MCP Servers</a></li>
       <li><a onclick="showSection('plugins')" id="nav-plugins">Plugins</a></li>
       <li><a onclick="showSection('agents')" id="nav-agents">Agents</a></li>
+      <li><a onclick="showSection('commands')" id="nav-commands">Commands</a></li>
     </ul>
     <ul class="menu px-2 pb-2">
       <li><a onclick="showSection('trash')" id="nav-trash" class="text-error font-medium">🗑 Trash</a></li>
     </ul>
-    <div class="p-4 text-xs text-base-content opacity-50">v1.0.0 · localhost:3000</div>
+    <div class="p-4 text-xs text-base-content opacity-50">v1.0.0 · localhost:7777</div>
+    <div class="px-4 pb-4 text-xs text-base-content opacity-30">Made with ♥ by Peter Hüer<br>adesso SE</div>
   </aside>
 
   <!-- Main content -->
@@ -37,6 +39,7 @@
     <div id="section-mcp" class="hidden"></div>
     <div id="section-plugins" class="hidden"></div>
     <div id="section-agents" class="hidden"></div>
+    <div id="section-commands" class="hidden"></div>
     <div id="section-trash" class="hidden"></div>
   </div>
 
@@ -54,6 +57,7 @@
   <script src="js/mcp.js"></script>
   <script src="js/plugins.js"></script>
   <script src="js/agents.js"></script>
+  <script src="js/commands.js"></script>
   <script src="js/trash.js"></script>
   <script src="js/overview.js"></script>
   <script src="app.js"></script>
