@@ -2,7 +2,7 @@ const { runCommand } = require('../lib/helpers');
 
 const ALLOWED_COMMANDS = [
   /^claude plugin (install|remove) [a-zA-Z0-9@._/-]+$/,
-  /^npx skills add [a-zA-Z0-9@._-]+(\/[a-zA-Z0-9@._-]+)?$/,
+  /^npx skills add [a-zA-Z0-9@._-]+(\/[a-zA-Z0-9@._-]+)?( --yes| -y| --global| -g)*$/,
 ];
 
 function isAllowed(cmd) {

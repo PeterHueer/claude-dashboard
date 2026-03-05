@@ -181,7 +181,7 @@ async function searchSkills() {
     <p class="text-xs opacity-50 mb-3">${escHtml(String(Number(data.count) || 0))} result${data.count !== 1 ? 's' : ''} for "${escHtml(q)}"</p>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
       ${data.skills.map(s => {
-        const installCmd = `npx skills add ${s.source}@${s.skillId}`;
+        const installCmd = `npx skills add ${s.source}@${s.skillId} --yes --global`;
         const skillUrl = `https://skills.sh/${s.id}`;
         const installs = s.installs >= 1000
           ? `${(s.installs / 1000).toFixed(1)}K`
@@ -659,7 +659,7 @@ function openSidePanel(type, title) {
       <div class="flex flex-col gap-2">
         ${skills.map((s, i) => {
           const installs = s.installs >= 1000 ? `${(s.installs / 1000).toFixed(1)}K` : String(s.installs);
-          const installCmd = `npx skills add ${s.source}@${s.skillId}`;
+          const installCmd = `npx skills add ${s.source}@${s.skillId} --yes --global`;
           const skillUrl = `https://skills.sh/${s.source}/${s.skillId}`;
           return `
             <div class="flex items-center gap-3 bg-base-100 rounded-lg px-3 py-2">
