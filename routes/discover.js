@@ -36,27 +36,48 @@ function discoverMcpServers() {
 
 function discoverPlugins() {
   const plugins = [];
+  const seen = new Set();
   const pluginsDir = path.join(CLAUDE_DIR, 'plugins', 'marketplaces');
   if (!fs.existsSync(pluginsDir)) return plugins;
 
+  function addPlugin(meta, marketplaceName, type) {
+    if (!meta || seen.has(meta.name)) return;
+    seen.add(meta.name);
+    plugins.push({
+      name: meta.name,
+      description: meta.description || '',
+      version: meta.version || null,
+      author: meta.author?.name || null,
+      type,
+      marketplace: marketplaceName,
+    });
+  }
+
   for (const marketplace of fs.readdirSync(pluginsDir)) {
+    const marketplaceDir = path.join(pluginsDir, marketplace);
+
+    // 1. Read marketplace.json to find plugins listed there
+    const marketplaceMeta = readJsonFile(path.join(marketplaceDir, '.claude-plugin', 'marketplace.json'));
+    if (marketplaceMeta?.plugins) {
+      for (const entry of marketplaceMeta.plugins) {
+        const source = typeof entry.source === 'string' ? entry.source : '.';
+        const sourceDir = path.resolve(marketplaceDir, source);
+        const meta = readJsonFile(path.join(sourceDir, 'plugin.json'));
+        addPlugin(meta, marketplace, 'skill');
+      }
+    }
+
+    // 2. Scan plugins/ and external_plugins/ subdirectories (other marketplaces)
     for (const category of ['plugins', 'external_plugins']) {
-      const categoryDir = path.join(pluginsDir, marketplace, category);
+      const categoryDir = path.join(marketplaceDir, category);
       if (!fs.existsSync(categoryDir)) continue;
       for (const item of fs.readdirSync(categoryDir)) {
         const meta = readJsonFile(path.join(categoryDir, item, '.claude-plugin', 'plugin.json'));
-        if (!meta) continue;
-        plugins.push({
-          name: meta.name || item,
-          description: meta.description || '',
-          version: meta.version || null,
-          author: meta.author?.name || null,
-          type: category === 'external_plugins' ? 'mcp' : 'skill',
-          marketplace,
-        });
+        addPlugin(meta, marketplace, category === 'external_plugins' ? 'mcp' : 'skill');
       }
     }
   }
+
   return plugins;
 }
 
