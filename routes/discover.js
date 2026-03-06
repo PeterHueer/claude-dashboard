@@ -37,50 +37,58 @@ function discoverMcpServers() {
 function discoverPlugins() {
   const plugins = [];
   const seen = new Set();
-  const pluginsDir = path.join(CLAUDE_DIR, 'plugins', 'marketplaces');
-  if (!fs.existsSync(pluginsDir)) return plugins;
 
-  // Only show enabled plugins
+  // Only show enabled plugins, keyed as "name@marketplace"
   const settings = readJsonFile(path.join(CLAUDE_DIR, 'settings.json')) || {};
-  const enabledPlugins = new Set(Object.keys(settings.enabledPlugins || {}).map(k => k.split('@')[0]));
+  const enabledPlugins = Object.keys(settings.enabledPlugins || {});
+  if (!enabledPlugins.length) return plugins;
 
-  function addPlugin(meta, marketplaceName, type) {
-    if (!meta || seen.has(meta.name)) return;
-    if (!enabledPlugins.has(meta.name)) return;
-    seen.add(meta.name);
+  const cacheDir = path.join(CLAUDE_DIR, 'plugins', 'cache');
+
+  for (const key of enabledPlugins) {
+    const atIdx = key.lastIndexOf('@');
+    const pluginName = atIdx === -1 ? key : key.slice(0, atIdx);
+    const marketplace = atIdx === -1 ? null : key.slice(atIdx + 1);
+    if (seen.has(pluginName)) continue;
+
+    // Read plugin.json from cache: cache/{marketplace}/{pluginName}/{version}/.claude-plugin/plugin.json
+    let meta = null;
+    if (marketplace) {
+      const pluginCacheDir = path.join(cacheDir, marketplace, pluginName);
+      const ver = latestVersion(pluginCacheDir);
+      if (ver) {
+        meta = readJsonFile(path.join(pluginCacheDir, ver, '.claude-plugin', 'plugin.json'));
+      }
+    }
+
+    // Fallback: scan marketplace source dirs
+    if (!meta) {
+      const pluginsDir = path.join(CLAUDE_DIR, 'plugins', 'marketplaces');
+      if (marketplace && fs.existsSync(pluginsDir)) {
+        const marketplaceDir = path.join(pluginsDir, marketplace);
+        // Try plugins/ subdir
+        const fromPlugins = readJsonFile(path.join(marketplaceDir, 'plugins', pluginName, '.claude-plugin', 'plugin.json'));
+        // Try external_plugins/ subdir
+        const fromExternal = readJsonFile(path.join(marketplaceDir, 'external_plugins', pluginName, '.claude-plugin', 'plugin.json'));
+        meta = fromPlugins || fromExternal;
+      }
+    }
+
+    if (!meta || meta.name !== pluginName) continue;
+    seen.add(pluginName);
+
+    // Determine type: external_plugins → mcp, otherwise skill
+    const isExternal = marketplace && fs.existsSync(
+      path.join(CLAUDE_DIR, 'plugins', 'marketplaces', marketplace, 'external_plugins', pluginName)
+    );
     plugins.push({
       name: meta.name,
       description: meta.description || '',
       version: meta.version || null,
       author: meta.author?.name || null,
-      type,
-      marketplace: marketplaceName,
+      type: isExternal ? 'mcp' : 'skill',
+      marketplace: marketplace || '',
     });
-  }
-
-  for (const marketplace of fs.readdirSync(pluginsDir)) {
-    const marketplaceDir = path.join(pluginsDir, marketplace);
-
-    // 1. Read marketplace.json to find plugins listed there
-    const marketplaceMeta = readJsonFile(path.join(marketplaceDir, '.claude-plugin', 'marketplace.json'));
-    if (marketplaceMeta?.plugins) {
-      for (const entry of marketplaceMeta.plugins) {
-        const source = typeof entry.source === 'string' ? entry.source : '.';
-        const sourceDir = path.resolve(marketplaceDir, source);
-        const meta = readJsonFile(path.join(sourceDir, 'plugin.json'));
-        addPlugin(meta, marketplace, 'skill');
-      }
-    }
-
-    // 2. Scan plugins/ and external_plugins/ subdirectories (other marketplaces)
-    for (const category of ['plugins', 'external_plugins']) {
-      const categoryDir = path.join(marketplaceDir, category);
-      if (!fs.existsSync(categoryDir)) continue;
-      for (const item of fs.readdirSync(categoryDir)) {
-        const meta = readJsonFile(path.join(categoryDir, item, '.claude-plugin', 'plugin.json'));
-        addPlugin(meta, marketplace, category === 'external_plugins' ? 'mcp' : 'skill');
-      }
-    }
   }
 
   return plugins;
