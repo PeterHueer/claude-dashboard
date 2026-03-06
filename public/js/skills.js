@@ -118,10 +118,11 @@ async function renderDiscoverSkills() {
       <span class="text-xs opacity-30">powered by skills.sh</span>
     </div>
     <div id="skills-search-results">
-      <p class="text-sm opacity-50">Search for skills above to discover new ones.</p>
+      <span class="loading loading-spinner loading-sm"></span>
     </div>
   `;
   setTimeout(() => document.getElementById('skills-search-input')?.focus(), 50);
+  browseSkills('alltime', 'All Time');
 }
 
 async function searchSkills() {
