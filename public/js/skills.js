@@ -15,9 +15,9 @@ loaders.skills = async function loadSkills() {
 
 function renderSkillsTabs() {
   const tabs = [
-    { id: 'my',      label: 'My Skills' },
-    { id: 'plugins', label: 'Plugins' },
-    { id: 'discover',label: 'Discover' },
+    { id: 'my',      label: 'Installed Skills' },
+    { id: 'plugins', label: 'Skills from Plugins' },
+    { id: 'discover',label: 'Discover new Skills' },
   ];
   return `
     <div class="flex gap-2 mb-5">
