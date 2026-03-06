@@ -36,16 +36,29 @@ async function switchSkillsView(view) {
   await loaders.skills();
 }
 
+let _skillsData = [];
+
 async function renderInstalledSkills(source) {
   const content = document.getElementById('skills-content');
   content.innerHTML = '<div class="text-base-content opacity-50 text-sm">Loading skills...</div>';
-  const all = await api('/api/skills');
-  const skills = all.filter(s => s.source === source);
-
-  if (skills.length === 0) {
+  _skillsData = await api('/api/skills');
+  const all = _skillsData.filter(s => s.source === source);
+  if (!all.length) {
     content.innerHTML = `<p class="text-sm opacity-50">No ${source === 'user' ? 'personal' : 'plugin'} skills found.</p>`;
     return;
   }
+  const searchId = `skills-search-${source}`;
+  initSearchBar(content, searchId, 'Search skills…', () => renderSkillsForSource(source));
+  renderSkillsForSource(source);
+}
+
+function renderSkillsForSource(source) {
+  const searchId = `skills-search-${source}`;
+  const q = document.getElementById(searchId)?.value || '';
+  const all = _skillsData.filter(s => s.source === source);
+  const skills = filterByQuery(all, q, ['name', 'description', 'plugin']);
+  const results = document.getElementById(`${searchId}-results`);
+  if (!results) return;
 
   const grouped = skills.reduce((acc, s) => {
     const key = s.plugin || 'other';
@@ -54,32 +67,34 @@ async function renderInstalledSkills(source) {
     return acc;
   }, {});
 
-  content.innerHTML = Object.entries(grouped).map(([plugin, items]) => `
-    <div class="mb-6">
-      ${source === 'plugin' ? `<h2 class="text-lg font-bold mb-3 text-primary">${escHtml(plugin)}</h2>` : ''}
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        ${items.map(skill => `
-          <div class="card bg-base-100 shadow-sm">
-            <div class="card-body p-4">
-              <h3 class="card-title text-sm">${escHtml(skill.name)}</h3>
-              <p class="text-xs opacity-70 flex-1">${escHtml(skill.description || 'No description')}</p>
-              <div class="card-actions justify-end mt-2">
-                <button class="btn btn-xs btn-outline btn-primary"
-                  onclick="copyInvoke('${escAttr(skill.name)}')">
-                  Copy invoke
-                </button>
-                ${source === 'user' ? `
-                <button class="btn btn-xs btn-error btn-outline"
-                  onclick="removeSkill('${escAttr(skill.file)}')">
-                  Remove
-                </button>` : ''}
+  results.innerHTML = !skills.length
+    ? '<p class="text-sm opacity-50">No skills match your search.</p>'
+    : Object.entries(grouped).map(([plugin, items]) => `
+        <div class="mb-6">
+          ${source === 'plugin' ? `<h2 class="text-lg font-bold mb-3 text-primary">${escHtml(plugin)}</h2>` : ''}
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            ${items.map(skill => `
+              <div class="card bg-base-100 shadow-sm">
+                <div class="card-body p-4">
+                  <h3 class="card-title text-sm">${escHtml(skill.name)}</h3>
+                  <p class="text-xs opacity-70 flex-1">${escHtml(skill.description || 'No description')}</p>
+                  <div class="card-actions justify-end mt-2">
+                    <button class="btn btn-xs btn-outline btn-primary"
+                      onclick="copyInvoke('${escAttr(skill.name)}')">
+                      Copy invoke
+                    </button>
+                    ${source === 'user' ? `
+                    <button class="btn btn-xs btn-error btn-outline"
+                      onclick="removeSkill('${escAttr(skill.file)}')">
+                      Remove
+                    </button>` : ''}
+                  </div>
+                </div>
               </div>
-            </div>
+            `).join('')}
           </div>
-        `).join('')}
-      </div>
-    </div>
-  `).join('');
+        </div>
+      `).join('');
 }
 
 const debouncedSearchSkills = debounce(searchSkills, 400);
