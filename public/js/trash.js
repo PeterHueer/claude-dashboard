@@ -1,4 +1,15 @@
 // ── Trash section ─────────────────────────────────────────────────────────────
+function trashItemName(item) {
+  // originalPath e.g. ~/.claude/skills/systematic-debugging/SKILL.md
+  // parent dir name = skill/agent name
+  const parts = (item.originalPath || '').replace(/\\/g, '/').split('/');
+  const filename = parts.at(-1) || '';
+  const parentDir = parts.at(-2) || '';
+  // If the file is SKILL.md or a named .md, use the parent dir
+  if (filename.toUpperCase() === 'SKILL.MD' || parentDir) return parentDir || filename;
+  return filename.replace(/\.md$/i, '') || item.id?.replace(/^[0-9]+-/, '') || 'unknown';
+}
+
 loaders.trash = async function loadTrash() {
   const container = document.getElementById('section-trash');
   container.innerHTML = '<div class="text-base-content opacity-50 text-sm">Loading trash...</div>';
@@ -22,7 +33,7 @@ loaders.trash = async function loadTrash() {
         <div class="flex items-center gap-4 bg-base-100 rounded-box px-4 py-3 shadow-sm border border-base-content border-opacity-5">
           <span class="badge ${item.type === 'agent' ? 'badge-secondary' : 'badge-primary'} badge-sm flex-shrink-0">${escHtml(item.type || 'file')}</span>
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium truncate">${escHtml(item.id?.replace(/^[0-9]+-/, '') || 'unknown')}</p>
+            <p class="text-sm font-medium truncate">${escHtml(trashItemName(item))}</p>
             <p class="text-xs opacity-40 truncate">${escHtml(item.originalPath || '')}</p>
           </div>
           <span class="text-xs opacity-30 flex-shrink-0">${escHtml(item.deletedAt ? new Date(item.deletedAt).toLocaleDateString() : '')}</span>
