@@ -9,7 +9,7 @@
       "name": "dashboard",
       "source": "./.claude-plugin",
       "description": "Local web dashboard for managing Claude Code skills, MCP servers, plugins, and agents.",
-      "version": "0.0.1"
+      "version": "0.0.2"
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "name": "@peterhueer/claude-dashboard",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Local web dashboard for managing Claude Code skills, MCP servers, plugins, and agents.",
   "main": "server.js",
   "bin": {
@@ -15,7 +15,13 @@
   "engines": {
     "node": ">=18"
   },
-  "keywords": ["claude", "claude-code", "dashboard", "ai", "mcp"],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "dashboard",
+    "ai",
+    "mcp"
+  ],
   "author": "Peter Hüer",
   "license": "MIT",
   "repository": {

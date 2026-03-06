@@ -1,7 +1,7 @@
 {
   "name": "dashboard",
   "description": "Local web dashboard for managing Claude Code skills, MCP servers, plugins, agents, and custom commands.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": {
     "name": "Peter Hüer",
     "email": ""
