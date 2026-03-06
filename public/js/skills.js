@@ -183,7 +183,7 @@ function renderSkillCards(skills) {
   return `
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
       ${skills.map(s => {
-        const installCmd = `npx skills add ${s.source}@${s.skillId}`;
+        const installCmd = `npx skills add ${s.source}@${s.skillId} --yes --global`;
         const skillUrl = `https://skills.sh/${s.id || s.source + '/' + s.skillId}`;
         const installs = s.installs >= 1000 ? `${(s.installs / 1000).toFixed(1)}K` : String(s.installs);
         return `
