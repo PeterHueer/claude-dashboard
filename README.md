@@ -6,7 +6,7 @@ Local web dashboard for managing Claude Code skills, MCP servers, plugins, and a
 
 ## Table of Contents
 
-- [Plugin Installation](#plugin-installation)
+- [Installation](#installation)
 - [Manual Installation](#manual-installation)
 - [Usage](#usage)
 - [Features](#features)
@@ -16,19 +16,15 @@ Local web dashboard for managing Claude Code skills, MCP servers, plugins, and a
 
 ---
 
-## Plugin Installation
+## Installation
 
-This repo is a valid Claude Code plugin. Install it directly from GitHub:
+### via npx (recommended)
 
 ```bash
-claude plugin install dashboard@claude-dashboard
+npx @peterhueer/claude-dashboard install
 ```
 
-After install, `/dashboard:open` is available in every Claude Code session and opens the browser automatically.
-
----
-
-## Manual Installation
+Copies all files to `~/.claude/dashboard`, installs dependencies, and optionally registers the Claude Code plugin — enabling `/dashboard:open` and `/dashboard:stop`.
 
 ### Prerequisites
 
@@ -36,16 +32,23 @@ After install, `/dashboard:open` is available in every Claude Code session and o
 - macOS / Linux — bash available natively
 - Windows — requires [Git Bash](https://git-scm.com/downloads) or WSL (does **not** work in `cmd.exe` or PowerShell)
 
-### Setup
+---
 
-Clone the repo into `~/.claude/dashboard` and run the install script:
+## Manual Installation
+
+Clone the repo and run the install script:
 
 ```bash
 git clone https://github.com/PeterHueer/claude-dashboard ~/.claude/dashboard
 bash ~/.claude/dashboard/install.sh
 ```
 
-The install script runs `npm install` and makes all scripts executable.
+Then register as a Claude Code plugin:
+
+```bash
+claude plugin marketplace add ~/.claude/dashboard
+claude plugin install dashboard@claude-dashboard
+```
 
 ---
 
