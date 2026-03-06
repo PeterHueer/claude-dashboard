@@ -1,8 +1,11 @@
-<p align="center"><img src="logo.png" alt="Claude AI Power Tools Dashboard Logo" width="400"></p>
+<p align="center"><img src="logo.png" alt="Claude Dashboard Logo" width="400"></p>
 
-# Claude AI Power Tools Dashboard
+# Claude Dashboard
 
-Local web dashboard for managing Claude Code skills, MCP servers, plugins, and agents.
+[![npm](https://img.shields.io/npm/v/@peterhueer/claude-dashboard)](https://www.npmjs.com/package/@peterhueer/claude-dashboard)
+[![license](https://img.shields.io/npm/l/@peterhueer/claude-dashboard)](LICENSE)
+
+**The** local web dashboard for [Claude Code](https://claude.ai/code). Manage your skills, MCP servers, plugins, agents, and permissions — all from your browser, without touching config files.
 
 > **Scope:** All introspection (skills, plugins, MCP servers, agents, permissions) reflects **user-level** installations from `~/.claude/` only. Project-level configuration in `.claude/` inside a project directory is not included.
 

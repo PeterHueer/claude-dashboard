@@ -1,7 +1,7 @@
 {
   "name": "@peterhueer/claude-dashboard",
   "version": "0.0.5",
-  "description": "Local web dashboard for managing Claude Code skills, MCP servers, plugins, and agents.",
+  "description": "Claude Dashboard — local web UI for Claude Code. Manage skills, MCP servers, plugins, agents, and permissions from your browser.",
   "main": "server.js",
   "bin": {
     "claude-dashboard": "bin/cli.js"
@@ -18,9 +18,20 @@
   "keywords": [
     "claude",
     "claude-code",
+    "claude-dashboard",
+    "claude-ai",
+    "anthropic",
     "dashboard",
+    "mcp",
+    "mcp-server",
+    "skills",
+    "plugins",
+    "agents",
+    "permissions",
+    "ai-tools",
     "ai",
-    "mcp"
+    "llm",
+    "developer-tools"
   ],
   "author": "Peter Hüer",
   "license": "MIT",
