@@ -4,6 +4,10 @@
 
 Local web dashboard for managing Claude Code skills, MCP servers, plugins, and agents.
 
+> **Scope:** All introspection (skills, plugins, MCP servers, agents, permissions) reflects **user-level** installations from `~/.claude/` only. Project-level configuration in `.claude/` inside a project directory is not included.
+
+> **Scope:** This dashboard operates at the **user level** (`~/.claude/`) only. Project-level configuration (`.claude/` inside a project) is not shown or modified.
+
 ## Table of Contents
 
 - [Installation](#installation)
