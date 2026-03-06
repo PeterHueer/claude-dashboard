@@ -7,7 +7,6 @@ Local web dashboard for managing Claude Code skills, MCP servers, plugins, and a
 ## Table of Contents
 
 - [Installation](#installation)
-- [Manual Installation](#manual-installation)
 - [Usage](#usage)
 - [Features](#features)
 - [Architecture](#architecture)
@@ -18,37 +17,23 @@ Local web dashboard for managing Claude Code skills, MCP servers, plugins, and a
 
 ## Installation
 
-### via npx (recommended)
+### Prerequisites
+
+- Node.js 18+
+- macOS / Linux — bash available natively
+- Windows — PowerShell 5+ (no Git Bash required)
+
+### Install
 
 ```bash
 npx @peterhueer/claude-dashboard install
 ```
 
-Copies all files to `~/.claude/dashboard`, installs dependencies, and optionally registers the Claude Code plugin — enabling `/dashboard:open` and `/dashboard:stop`.
-
-### Prerequisites
-
-- Node.js 18+
-- macOS / Linux — bash available natively
-- Windows — requires [Git Bash](https://git-scm.com/downloads) or WSL (does **not** work in `cmd.exe` or PowerShell)
-
----
-
-## Manual Installation
-
-Clone the repo and run the install script:
-
-```bash
-git clone https://github.com/PeterHueer/claude-dashboard ~/.claude/dashboard
-bash ~/.claude/dashboard/install.sh
-```
-
-Then register as a Claude Code plugin:
-
-```bash
-claude plugin marketplace add ~/.claude/dashboard
-claude plugin install dashboard@claude-dashboard
-```
+This will:
+1. Copy all files to `~/.claude/dashboard`
+2. Install server dependencies
+3. Make scripts executable
+4. Ask if you want to register the Claude Code plugin (enables `/dashboard:open` and `/dashboard:stop`)
 
 ---
 
@@ -56,16 +41,23 @@ claude plugin install dashboard@claude-dashboard
 
 ### Via Claude Code
 
-Type `/dashboard:open` in any Claude Code session to start the server and open the browser.
+```
+/dashboard:open   — start the server and open the browser
+/dashboard:stop   — stop the server
+```
 
 ### Via terminal
 
+**macOS / Linux**
 ```bash
-# Start (no-op if already running, opens browser)
 bash ~/.claude/dashboard/scripts/start.sh
-
-# Stop
 bash ~/.claude/dashboard/scripts/stop.sh
+```
+
+**Windows**
+```powershell
+powershell -File ~/.claude/dashboard/scripts/start.ps1
+powershell -File ~/.claude/dashboard/scripts/stop.ps1
 ```
 
 Open manually: http://127.0.0.1:7777
@@ -128,25 +120,32 @@ Open manually: http://127.0.0.1:7777
 │       ├── agents.js
 │       └── trash.js
 ├── scripts/
-│   ├── start.sh           # Start server (cross-platform)
-│   ├── stop.sh            # Stop server (cross-platform)
+│   ├── start.sh           # Start server (macOS / Linux)
+│   ├── stop.sh            # Stop server (macOS / Linux)
+│   ├── start.ps1          # Start server (Windows)
+│   ├── stop.ps1           # Stop server (Windows)
 │   └── remove.sh          # Remove hooks + stop server
-├── commands/
-│   └── open.md            # /dashboard:open Claude Code command
+├── bin/
+│   └── cli.js             # npx installer
 └── .claude-plugin/
-    └── plugin.json        # Plugin manifest
+    ├── plugin.json        # Plugin manifest
+    ├── marketplace.json   # Marketplace manifest
+    └── commands/
+        ├── open.md        # /dashboard:open
+        └── stop.md        # /dashboard:stop
 ```
 
 ---
 
 ## Scripts
 
-| Script | Description |
-|--------|-------------|
-| `scripts/start.sh` | Starts the server on port 7777 if not already running, then opens the browser. Cross-platform (macOS / Linux / Windows Git Bash). |
-| `scripts/stop.sh` | Kills the process on port 7777. Cross-platform. |
-| `scripts/remove.sh` | Removes any dashboard hooks from `~/.claude/settings.json` and stops the server. |
-| `install.sh` | Runs `npm install` and makes scripts executable. |
+| Script | Platform | Description |
+|--------|----------|-------------|
+| `scripts/start.sh` | macOS / Linux | Starts server on port 7777, opens browser |
+| `scripts/stop.sh` | macOS / Linux | Kills the process on port 7777 |
+| `scripts/start.ps1` | Windows | Starts server on port 7777, opens browser |
+| `scripts/stop.ps1` | Windows | Kills the process on port 7777 |
+| `scripts/remove.sh` | macOS / Linux | Removes dashboard hooks from `~/.claude/settings.json` and stops server |
 
 ---
 
