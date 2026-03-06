@@ -1,8 +1,8 @@
+<img src="logo.png" alt="Claude AI Power Tools Dashboard Logo" width="120">
+
 # Claude AI Power Tools Dashboard
 
 Local web dashboard for managing Claude Code skills, MCP servers, plugins, and agents.
-
-<img src="example.png" alt="Claude AI Power Tools Dashboard" width="800">
 
 ## Table of Contents
 
@@ -156,3 +156,7 @@ Open manually: http://127.0.0.1:7777
   - `claude plugin install/remove <package>`
   - `npx skills add <source>@<skillId>`
 - All user input is HTML-escaped before rendering
+
+---
+
+<img src="example.png" alt="Claude AI Power Tools Dashboard" width="800">
