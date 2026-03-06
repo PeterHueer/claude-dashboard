@@ -40,8 +40,13 @@ function discoverPlugins() {
   const pluginsDir = path.join(CLAUDE_DIR, 'plugins', 'marketplaces');
   if (!fs.existsSync(pluginsDir)) return plugins;
 
+  // Only show enabled plugins
+  const settings = readJsonFile(path.join(CLAUDE_DIR, 'settings.json')) || {};
+  const enabledPlugins = new Set(Object.keys(settings.enabledPlugins || {}).map(k => k.split('@')[0]));
+
   function addPlugin(meta, marketplaceName, type) {
     if (!meta || seen.has(meta.name)) return;
+    if (!enabledPlugins.has(meta.name)) return;
     seen.add(meta.name);
     plugins.push({
       name: meta.name,
