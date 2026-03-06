@@ -101,6 +101,29 @@ function discoverPlugins() {
     });
   }
 
+  // Also include installed external_plugins (MCP type) — tracked by directory presence
+  const pluginsDir = path.join(CLAUDE_DIR, 'plugins', 'marketplaces');
+  if (fs.existsSync(pluginsDir)) {
+    for (const marketplace of fs.readdirSync(pluginsDir)) {
+      const extDir = path.join(pluginsDir, marketplace, 'external_plugins');
+      if (!fs.existsSync(extDir)) continue;
+      for (const pluginName of fs.readdirSync(extDir)) {
+        if (seen.has(pluginName)) continue;
+        const meta = readJsonFile(path.join(extDir, pluginName, '.claude-plugin', 'plugin.json'));
+        if (!meta) continue;
+        seen.add(pluginName);
+        plugins.push({
+          name: meta.name || pluginName,
+          description: meta.description || '',
+          version: meta.version || null,
+          author: meta.author?.name || null,
+          type: 'mcp',
+          marketplace,
+        });
+      }
+    }
+  }
+
   return plugins;
 }
 

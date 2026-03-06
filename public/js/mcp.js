@@ -37,13 +37,10 @@ function renderMcpList() {
                   </span>
                 </div>
                 <p class="text-xs opacity-70 font-mono mt-1 break-all">${escHtml(endpoint)}</p>
+                ${!isPlugin ? `
                 <div class="card-actions justify-end mt-2">
-                  ${isPlugin
-                    ? `<div class="tooltip" data-tip="Managed by plugin ${escAttr(pluginName)}">
-                         <button class="btn btn-xs btn-error btn-outline" disabled>Remove</button>
-                       </div>`
-                    : `<button class="btn btn-xs btn-error btn-outline" onclick="removeMcp('${escAttr(s.name)}')">Remove</button>`}
-                </div>
+                  <button class="btn btn-xs btn-error btn-outline" onclick="removeMcp('${escAttr(s.name)}')">Remove</button>
+                </div>` : ''}
               </div>
             </div>`;
         }).join('')}
