@@ -9,6 +9,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 require('./routes/discover')(app);
 require('./routes/mutations')(app);
+require('./routes/permissions')(app);
 require('./routes/trash')(app);
 require('./routes/exec')(app);
 
