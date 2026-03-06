@@ -7,26 +7,36 @@ const { readJsonFile } = require('../lib/helpers');
 function discoverMcpServers() {
   const servers = {};
 
+  // 1. Servers from ~/.mcp.json enabled via enabledMcpjsonServers
+  const settingsLocal = readJsonFile(path.join(CLAUDE_DIR, 'settings.local.json')) || {};
+  const enabledNames = new Set(settingsLocal.enabledMcpjsonServers || []);
+
   const globalMcp = readJsonFile(path.join(os.homedir(), '.mcp.json'));
   if (globalMcp?.mcpServers) {
     Object.entries(globalMcp.mcpServers).forEach(([name, config]) => {
-      servers[name] = { name, ...config, source: 'global' };
+      if (!enabledNames.size || enabledNames.has(name)) {
+        servers[name] = { name, ...config, source: 'global' };
+      }
     });
   }
 
-  const pluginsDir = path.join(CLAUDE_DIR, 'plugins', 'marketplaces');
-  if (fs.existsSync(pluginsDir)) {
-    for (const marketplace of fs.readdirSync(pluginsDir)) {
-      const extPluginsDir = path.join(pluginsDir, marketplace, 'external_plugins');
-      if (!fs.existsSync(extPluginsDir)) continue;
-      for (const plugin of fs.readdirSync(extPluginsDir)) {
-        const mcp = readJsonFile(path.join(extPluginsDir, plugin, '.mcp.json'));
-        if (!mcp) continue;
-        Object.entries(mcp).forEach(([name, config]) => {
-          if (!servers[name]) {
-            servers[name] = { name, ...config, source: `plugin:${plugin}` };
-          }
-        });
+  // 2. External plugin MCP servers — active when enableAllProjectMcpServers is true
+  if (settingsLocal.enableAllProjectMcpServers) {
+    const pluginsDir = path.join(CLAUDE_DIR, 'plugins', 'marketplaces');
+    if (fs.existsSync(pluginsDir)) {
+      for (const marketplace of fs.readdirSync(pluginsDir)) {
+        const extPluginsDir = path.join(pluginsDir, marketplace, 'external_plugins');
+        if (!fs.existsSync(extPluginsDir)) continue;
+        for (const plugin of fs.readdirSync(extPluginsDir)) {
+          const mcp = readJsonFile(path.join(extPluginsDir, plugin, '.mcp.json'));
+          if (!mcp) continue;
+          const entries = mcp.mcpServers ? Object.entries(mcp.mcpServers) : Object.entries(mcp);
+          entries.forEach(([name, config]) => {
+            if (!servers[name]) {
+              servers[name] = { name, ...config, source: `plugin:${plugin}` };
+            }
+          });
+        }
       }
     }
   }
