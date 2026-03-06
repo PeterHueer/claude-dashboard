@@ -52,6 +52,9 @@ async function install() {
   // 3. Make scripts executable (macOS / Linux)
   if (process.platform !== 'win32') {
     execSync(`chmod +x ${DEST}/scripts/start.sh ${DEST}/scripts/stop.sh ${DEST}/scripts/remove.sh`);
+  } else {
+    // Set PowerShell execution policy to allow local scripts
+    spawnSync('powershell.exe', ['-Command', 'Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force'], { stdio: 'inherit' });
   }
 
   // 4. Register Claude Code marketplace
@@ -66,14 +69,7 @@ async function install() {
   }
 
   console.log('Done! Claude Dashboard installed.');
-  console.log(`\n  Start:  bash ${DEST}/scripts/start.sh`);
-  console.log(`  Stop:   bash ${DEST}/scripts/stop.sh`);
-  console.log(`  Open:   http://127.0.0.1:7777`);
-  if (ans === 'y' || ans === 'yes') {
-    console.log('\n  Or use /dashboard:open in Claude Code.\n');
-  } else {
-    console.log('');
-  }
+  console.log('Available in Claude Code with the Command "/dashboard:open".');
 }
 
 const [,, command] = process.argv;
