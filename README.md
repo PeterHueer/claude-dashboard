@@ -69,9 +69,12 @@ Open manually: http://127.0.0.1:7777
 - **Overview** — stat cards for all sections, click to navigate
 - **Skills** — browse personal and plugin skills across three tabs: My Skills, Plugins, Discover
 - **Skill discovery** — search [skills.sh](https://skills.sh) and browse All Time / Trending / Hot; install directly from the dashboard
-- **MCP Servers** — view all active MCP server configurations with their source (global or plugin)
-- **Plugins** — inspect installed plugins with type badges (skill / mcp)
+- **MCP Servers** — view all active MCP server configurations with their source (global or plugin); remove user-managed servers directly
+- **Plugins** — inspect installed plugins with type badges (skill / mcp); external MCP plugins shown with removal disabled and tooltip explanation
 - **Agents** — explore available agents across all installed plugins
+- **Permissions** — view and remove allow/deny rules from `settings.json` and `settings.local.json`; rules grouped by tool category with source badge (global / local)
+- **Trash** — restore or permanently delete trashed skills and agents
+- **Live search** — instant filtering in Skills, Agents, MCP, Plugins, and Permissions sections
 - **Terminal panel** — live CLI output streamed to the browser for every action
 
 ---
@@ -95,6 +98,7 @@ Open manually: http://127.0.0.1:7777
 | MCP Servers | `~/.mcp.json`, plugin `.mcp.json` files |
 | Plugins | `~/.claude/plugins/marketplaces/` |
 | Agents | `~/.claude/plugins/marketplaces/*/plugins/*/agents/` |
+| Permissions | `~/.claude/settings.json`, `~/.claude/settings.local.json` |
 
 ### File structure
 
@@ -106,18 +110,20 @@ Open manually: http://127.0.0.1:7777
 │   └── helpers.js         # Shared utilities
 ├── routes/
 │   ├── discover.js        # GET /api/skills, /api/mcp, /api/plugins, /api/agents
-│   ├── mutations.js       # DELETE /api/skills
+│   ├── mutations.js       # DELETE /api/skills, /api/agents, /api/mcp
+│   ├── permissions.js     # GET + DELETE /api/permissions
 │   ├── exec.js            # POST /api/exec
 │   └── trash.js           # Trash management
 ├── public/
 │   ├── index.html
 │   └── js/
-│       ├── core.js        # Navigation, API helpers, terminal
+│       ├── core.js        # Navigation, API helpers, search utilities, terminal
 │       ├── overview.js
 │       ├── skills.js
 │       ├── mcp.js
 │       ├── plugins.js
 │       ├── agents.js
+│       ├── permissions.js
 │       └── trash.js
 ├── scripts/
 │   ├── start.sh           # Start server (macOS / Linux)
@@ -152,9 +158,11 @@ Open manually: http://127.0.0.1:7777
 ## Security
 
 - Server binds to `127.0.0.1` only — not accessible on the network
+- Security headers on all responses: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, strict `Content-Security-Policy`
 - `/api/exec` only allows two command patterns:
   - `claude plugin install/remove <package>`
   - `npx skills add <source>@<skillId>`
+- All file paths validated against `~/.claude/` before read or write
 - All user input is HTML-escaped before rendering
 
 ---
