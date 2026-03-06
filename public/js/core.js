@@ -51,6 +51,26 @@ async function exec(cmd) {
   return data;
 }
 
+// ── Search helpers ────────────────────────────────────────────────────────────
+function initSearchBar(container, inputId, placeholder, renderFn) {
+  container.innerHTML = `
+    <input type="text" id="${inputId}" placeholder="${escHtml(placeholder)}"
+      class="input input-bordered input-sm mb-5" style="min-width:260px" />
+    <div id="${inputId}-results"></div>
+  `;
+  const input = document.getElementById(inputId);
+  input.addEventListener('input', renderFn);
+  input.focus();
+}
+
+function filterByQuery(items, query, fields) {
+  const q = query.toLowerCase().trim();
+  if (!q) return items;
+  return items.filter(item =>
+    fields.some(f => String(item[f] || '').toLowerCase().includes(q))
+  );
+}
+
 // ── Terminal ──────────────────────────────────────────────────────────────────
 function log(text) {
   const el = document.getElementById('terminal-output');
