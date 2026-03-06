@@ -36,6 +36,7 @@ function showSection(name) {
 // ── API helpers ───────────────────────────────────────────────────────────────
 async function api(path) {
   const res = await fetch(path);
+  if (!res.ok) throw new Error(`API ${path} returned ${res.status}`);
   return res.json();
 }
 

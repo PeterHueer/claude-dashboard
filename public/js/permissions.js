@@ -4,7 +4,12 @@ let _permsData = [];
 loaders.permissions = async function loadPermissions() {
   const container = document.getElementById('section-permissions');
   container.innerHTML = '<div class="text-base-content opacity-50 text-sm">Loading permissions...</div>';
-  _permsData = await api('/api/permissions');
+  try {
+    _permsData = await api('/api/permissions');
+  } catch (e) {
+    container.innerHTML = `<p class="text-sm text-error">Failed to load permissions: ${escHtml(e.message)}</p>`;
+    return;
+  }
   if (!_permsData.length) {
     container.innerHTML = '<p class="text-sm opacity-50">No permissions configured.</p>';
     return;
