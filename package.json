@@ -1,6 +1,6 @@
 {
   "name": "@peterhueer/claude-dashboard",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Local web dashboard for managing Claude Code skills, MCP servers, plugins, and agents.",
   "main": "server.js",
   "bin": {
