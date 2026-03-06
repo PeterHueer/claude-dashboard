@@ -1,4 +1,4 @@
-<img src="logo.png" alt="Claude AI Power Tools Dashboard Logo" width="120">
+<p align="center"><img src="logo.png" alt="Claude AI Power Tools Dashboard Logo" width="400"></p>
 
 # Claude AI Power Tools Dashboard
 
