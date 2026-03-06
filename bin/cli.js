@@ -10,24 +10,14 @@ const readline = require('readline');
 const DEST = path.join(os.homedir(), '.claude', 'dashboard');
 const SRC = path.join(__dirname, '..');
 
-const COPY_ITEMS = [
-  'server.js',
-  'lib',
-  'routes',
-  'public',
-  'scripts',
-  '.claude-plugin',
-  'package.json',
-  'install.sh',
-  'example.png',
-  'README.md',
-];
+const EXCLUDE = new Set(['node_modules', '.git', 'bin', 'logs', '.DS_Store']);
 
 function copyRecursive(src, dest) {
   const stat = fs.statSync(src);
   if (stat.isDirectory()) {
     fs.mkdirSync(dest, { recursive: true });
     for (const entry of fs.readdirSync(src)) {
+      if (EXCLUDE.has(entry)) continue;
       copyRecursive(path.join(src, entry), path.join(dest, entry));
     }
   } else {
@@ -51,13 +41,7 @@ async function install() {
 
   // 1. Copy files
   console.log(`Copying files to ${DEST}...`);
-  fs.mkdirSync(DEST, { recursive: true });
-  for (const item of COPY_ITEMS) {
-    const src = path.join(SRC, item);
-    if (fs.existsSync(src)) {
-      copyRecursive(src, path.join(DEST, item));
-    }
-  }
+  copyRecursive(SRC, DEST);
   console.log('Files copied.\n');
 
   // 2. npm install
